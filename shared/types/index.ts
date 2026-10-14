@@ -1,0 +1,379 @@
+/**
+ * Shared Type Definitions & Contracts
+ * Used by both landing-platform-web (Frontend) and landing-platform-api (Backend)
+ */
+
+// -------------------------------------------------------------
+// 1. SHADCN COMPONENT CATALOG TYPES
+// -------------------------------------------------------------
+
+export type ShadcnComponentType =
+  | 'Accordion'
+  | 'Alert'
+  | 'AlertDialog'
+  | 'AspectRatio'
+  | 'Attachment'
+  | 'Avatar'
+  | 'Badge'
+  | 'Breadcrumb'
+  | 'Bubble'
+  | 'Button'
+  | 'ButtonGroup'
+  | 'Calendar'
+  | 'Card'
+  | 'Carousel'
+  | 'Chart'
+  | 'Checkbox'
+  | 'Collapsible'
+  | 'Combobox'
+  | 'Command'
+  | 'ContextMenu'
+  | 'DataTable'
+  | 'DatePicker'
+  | 'Dialog'
+  | 'Direction'
+  | 'Drawer'
+  | 'DropdownMenu'
+  | 'Empty'
+  | 'Field'
+  | 'HoverCard'
+  | 'Input'
+  | 'InputGroup'
+  | 'InputOTP'
+  | 'Item'
+  | 'Kbd'
+  | 'Label'
+  | 'Marker'
+  | 'Menubar'
+  | 'Message'
+  | 'MessageScroller'
+  | 'NativeSelect'
+  | 'NavigationMenu'
+  | 'Pagination'
+  | 'Popover'
+  | 'Progress'
+  | 'QuestionnaireNew'
+  | 'RadioGroup'
+  | 'Resizable'
+  | 'ScrollArea'
+  | 'Select'
+  | 'Separator'
+  | 'Sheet'
+  | 'Sidebar'
+  | 'Skeleton'
+  | 'Slider'
+  | 'Spinner'
+  | 'Switch'
+  | 'Table'
+  | 'Tabs'
+  | 'Textarea'
+  | 'Toast'
+  | 'Toggle'
+  | 'ToggleGroup'
+  | 'Tooltip'
+  | 'Typography';
+
+export interface ElementStyles {
+  textColor?: string;
+  accentColor?: string;
+  backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundSize?: 'cover' | 'contain' | 'auto';
+  backgroundPosition?: 'center' | 'top' | 'bottom';
+  backgroundOverlay?: number; // 0 to 1 opacity
+  borderWidth?: number; // in px: 0, 1, 2, 4, 8
+  borderColor?: string;
+  borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
+  borderRadius?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  padding?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  margin?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  opacity?: number; // 0 to 100
+  fontSize?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
+  fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  textAlign?: 'left' | 'center' | 'right';
+  customClasses?: string;
+}
+
+export interface ShadcnComponentInstance {
+  id: string;
+  type: ShadcnComponentType;
+  props: Record<string, any>;
+  styles?: ElementStyles;
+  children?: ShadcnComponentInstance[];
+}
+
+// -------------------------------------------------------------
+// 2. PAGE BUILDER & CONTAINER BLOCK TREE SCHEMA
+// -------------------------------------------------------------
+
+export type BlockType =
+  | 'CONTAINER'
+  | 'NAVBAR'
+  | 'HERO'
+  | 'PRODUCT_SPOTLIGHT'
+  | 'IMAGE'
+  | 'CHECKOUT_FORM'
+  | 'REVIEWS'
+  | 'TIMER'
+  | 'FEATURE_GRID'
+  | 'FAQ'
+  | 'FOOTER';
+
+export interface BlockStyles {
+  backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundSize?: 'cover' | 'contain' | 'auto';
+  backgroundPosition?: 'center' | 'top' | 'bottom';
+  backgroundOverlay?: number; // 0 to 1 opacity for dark tint
+  textColor?: string;
+  accentColor?: string;
+  fontFamily?: 'sans' | 'serif' | 'mono' | 'space' | 'jakarta';
+  paddingY?: 'none' | 'compact' | 'normal' | 'spacious';
+  paddingX?: 'none' | 'compact' | 'normal' | 'spacious';
+  padding?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  margin?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  borderWidth?: number; // in px: 0, 1, 2, 4, 8
+  borderColor?: string;
+  borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
+  borderRadius?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  opacity?: number; // 0 to 100
+  customCssClass?: string;
+}
+
+export interface ContainerLayout {
+  display: 'flex' | 'grid';
+  flexDirection: 'row' | 'col';
+  justify: 'start' | 'center' | 'end' | 'between' | 'around';
+  align: 'start' | 'center' | 'end' | 'stretch';
+  columns: 1 | 2 | 3 | 4;
+  gap: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+}
+
+export interface BaseBlockProps {
+  id: string;
+  type: BlockType;
+  order: number;
+  isHidden?: boolean;
+  styles?: BlockStyles;
+}
+
+export interface ContainerBlockProps extends BaseBlockProps {
+  type: 'CONTAINER';
+  label?: string;
+  layout: ContainerLayout;
+  columnsContent: Array<{
+    id: string;
+    columnWidth?: string; // e.g. "1/2", "auto", "1/3"
+    components: ShadcnComponentInstance[];
+  }>;
+}
+
+export interface NavbarBlockProps extends BaseBlockProps {
+  type: 'NAVBAR';
+  brandName: string;
+  brandLogoUrl?: string;
+  positionMode: 'sticky' | 'fixed' | 'static';
+  navLinks: Array<{ label: string; href: string }>;
+  ctaText: string;
+  ctaAction?: 'scroll_to_checkout' | 'external_link';
+}
+
+export interface HeroBlockProps extends BaseBlockProps {
+  type: 'HERO';
+  headline: string;
+  subheadline: string;
+  badgeText?: string;
+  ctaText: string;
+  ctaAction?: 'scroll_to_checkout' | 'external_link';
+  ctaTargetUrl?: string;
+  showBadge?: boolean;
+}
+
+export interface ProductSpotlightProps extends BaseBlockProps {
+  type: 'PRODUCT_SPOTLIGHT';
+  productId: string;
+  title: string;
+  description: string;
+  price: number;
+  compareAtPrice?: number;
+  inventoryBadgeText?: string;
+  features: string[];
+}
+
+export interface ImageBlockProps extends BaseBlockProps {
+  type: 'IMAGE';
+  imageUrl: string;
+  altText: string;
+  caption?: string;
+  aspectRatio?: '16:9' | '4:3' | '21:9' | 'auto';
+  fullWidth?: boolean;
+}
+
+export interface CheckoutFormProps extends BaseBlockProps {
+  type: 'CHECKOUT_FORM';
+  productId: string;
+  productTitle: string;
+  amount: number;
+  formTitle: string;
+  formDescription?: string;
+  supportedPaymentMethods: ('QRIS' | 'VA' | 'EWALLET')[];
+  submitButtonText: string;
+}
+
+export interface ReviewsBlockProps extends BaseBlockProps {
+  type: 'REVIEWS';
+  sectionTitle: string;
+  subtitle?: string;
+  items: Array<{
+    author: string;
+    roleOrStore: string;
+    comment: string;
+    rating: number;
+    verified: boolean;
+  }>;
+}
+
+export interface TimerBlockProps extends BaseBlockProps {
+  type: 'TIMER';
+  urgencyText: string;
+  durationHours?: number;
+  durationMinutes?: number;
+}
+
+export interface FaqBlockProps extends BaseBlockProps {
+  type: 'FAQ';
+  sectionTitle: string;
+  subtitle?: string;
+  items: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+export interface FooterBlockProps extends BaseBlockProps {
+  type: 'FOOTER';
+  brandName: string;
+  copyrightText?: string;
+  badges: string[];
+}
+
+export type PageBlock =
+  | ContainerBlockProps
+  | NavbarBlockProps
+  | HeroBlockProps
+  | ProductSpotlightProps
+  | ImageBlockProps
+  | CheckoutFormProps
+  | ReviewsBlockProps
+  | TimerBlockProps
+  | FaqBlockProps
+  | FooterBlockProps;
+
+export interface PageContentTree {
+  version: number;
+  theme: {
+    primaryColor: string;
+    accentColor: string;
+    fontFamily: string;
+    borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'full';
+  };
+  blocks: PageBlock[];
+}
+
+// -------------------------------------------------------------
+// 3. E-COMMERCE & CHECKOUT CONTRACTS
+// -------------------------------------------------------------
+
+export interface CustomerInfoDto {
+  name: string;
+  phone: string;
+  email?: string;
+  address?: {
+    street: string;
+    city?: string;
+    province?: string;
+    postalCode?: string;
+  };
+  notes?: string;
+}
+
+export interface CreateCheckoutRequestDto {
+  pageId: string;
+  productId: string;
+  quantity: number;
+  selectedVariantId?: string;
+  customer: CustomerInfoDto;
+  preferredPaymentMethod?: 'VIRTUAL_ACCOUNT' | 'QRIS' | 'EWALLET' | 'CREDIT_CARD' | 'COD';
+  trackingContext?: {
+    eventId: string;
+    fbp?: string;
+    fbc?: string;
+    clientIp?: string;
+    userAgent?: string;
+  };
+}
+
+export interface CreateCheckoutResponseDto {
+  orderId: string;
+  status: 'PENDING' | 'PAID' | 'EXPIRED' | 'FAILED';
+  totalAmount: number;
+  currency: string;
+  paymentUrl?: string;
+  virtualAccountInfo?: {
+    bankCode: string;
+    accountNumber: string;
+    expirationDate: string;
+  };
+  qrisInfo?: {
+    qrString: string;
+    qrImageUrl: string;
+  };
+}
+
+// -------------------------------------------------------------
+// 4. PAYMENT GATEWAY (BYOK) DEFINITIONS
+// -------------------------------------------------------------
+
+export type PaymentProvider = 'XENDIT' | 'MIDTRANS' | 'STRIPE';
+
+export interface XenditMerchantConfig {
+  apiKey: string;
+  webhookSecret: string;
+  isProduction: boolean;
+}
+
+// -------------------------------------------------------------
+// 5. MARKETING TRACKING & ANALYTICS
+// -------------------------------------------------------------
+
+export type TrackingEventType =
+  | 'PageView'
+  | 'ViewContent'
+  | 'InitiateCheckout'
+  | 'AddPaymentInfo'
+  | 'Purchase';
+
+export interface TrackingEventPayload {
+  eventName: TrackingEventType;
+  eventId: string;
+  eventTime: number;
+  sourceUrl: string;
+  userData?: {
+    emailHash?: string;
+    phoneHash?: string;
+    clientIpAddress?: string;
+    clientUserAgent?: string;
+    fbp?: string;
+    fbc?: string;
+  };
+  customData?: {
+    currency?: string;
+    value?: number;
+    contentName?: string;
+    contentCategory?: string;
+    contentIds?: string[];
+    numItems?: number;
+  };
+}

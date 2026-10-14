@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alex Travis — Principal Product Designer & Developer</title>
+  <meta name="description" content="Portfolio & design engineering studio of Alex Travis. Specializing in UI/UX design, design systems, and web performance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========================================================= -->
+  <!-- 1. STICKY NAV -->
+  <!-- ========================================================= -->
+  <header class="header">
+    <div class="container header__container">
+      <a href="#" class="header__logo" aria-label="Alex Travis Home">
+        <span class="header__logo-icon">AT</span>
+        <span class="header__logo-text">Alex Travis</span>
+      </a>
+
+      <nav class="header__nav" aria-label="Main Navigation">
+        <ul class="header__menu">
+          <li class="header__menu-item"><a href="#about" class="header__link">About</a></li>
+          <li class="header__menu-item"><a href="#projects" class="header__link">Project</a></li>
+          <li class="header__menu-item"><a href="#pricing" class="header__link">Pricing</a></li>
+          <li class="header__menu-item"><a href="#store" class="header__link">Store</a></li>
+          <li class="header__menu-item header__dropdown">
+            <button type="button" class="header__dropdown-btn" aria-expanded="false" id="pages-dropdown-btn">
+              Pages
+              <svg class="header__dropdown-icon" width="10" height="6" viewBox="0 0 10 6" fill="none">
+                <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="header__dropdown-menu" id="pages-dropdown-menu">
+              <a href="#services" class="header__dropdown-link">Services</a>
+              <a href="#process" class="header__dropdown-link">Process</a>
+              <a href="#testimonials" class="header__dropdown-link">Testimonials</a>
+              <a href="#faq" class="header__dropdown-link">FAQ</a>
+            </div>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="header__actions">
+        <button type="button" class="header__cart-btn" aria-label="Shopping Cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <span class="header__cart-badge">0</span>
+        </button>
+
+        <a href="#contact" class="btn btn--dark">Hire Me!</a>
+
+        <button type="button" class="header__hamburger" aria-label="Toggle menu" id="mobile-menu-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Global Wrapper with container guide lines -->
+  <div class="page-guidelines">
+    <div class="container container--relative">
+      <div class="guideline guideline--left" aria-hidden="true"></div>
+      <div class="guideline guideline--right" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <main>
+    <!-- ========================================================= -->
+    <!-- 2. HERO SECTION -->
+    <!-- ========================================================= -->
+    <section class="hero" id="hero">
+      <div class="container hero__container">
+        <div class="hero__content">
+          <div class="badge badge--lime">
+            <span class="badge__dot"></span>
+            Hi, Alex Travis Here
+          </div>
+
+          <h1 class="hero__title">
+            <span class="heading__dark">A creative product designer</span>
+            <span class="heading__muted">with modern touch based in San Francisco.</span>
+          </h1>
+
+          <p class="hero__description">
+            Transforming ambitious ideas into clean, functional, and user-centric digital experiences with high attention to detail and conversion performance.
+          </p>
+
+          <div class="hero__buttons">
+            <a href="#contact" class="btn btn--gradient">
+              Hire Me!
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+            <a href="#projects" class="btn btn--outline">See My Portfolio</a>
+          </div>
+        </div>
+
+        <div class="hero__visual">
+          <div class="hero__card">
+            <!-- Badge 1: Top Right Available for Work -->
+            <div class="badge badge--lime hero__badge-available">
+              <span class="badge__star">★</span> Available for work
+            </div>
+
+            <!-- Main Portrait Placeholder -->
+            <div class="hero__image-wrapper">
+              <!-- PLACEHOLDER: Designer portrait photo -->
+              <div class="media-placeholder hero__image">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#b5b5b5" stroke-width="1.2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Bottom meta -->
+            <div class="hero__card-footer">
+              <div class="hero__card-info">
+                <span class="hero__card-name">Alex Travis</span>
+                <span class="hero__card-role">Principal Product Designer</span>
+              </div>
+              <div class="badge badge--neutral hero__badge-location">
+                NY, New York
+              </div>
+            </div>
+
+            <!-- Floating Card 1: Left Rating Pill -->
+            <div class="floating-card floating-card--left">
+              <span class="floating-card__star">★ 4.9</span>
+              <span class="floating-card__text">(120+ reviews)</span>
+            </div>
+
+            <!-- Floating Card 2: Right Growth Pill -->
+            <div class="floating-card floating-card--right">
+              <span class="floating-card__highlight">+140%</span>
+              <span class="floating-card__text">Avg. ROI Surge</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 3. STATS ROW (4 columns, bordered) -->
+    <!-- ========================================================= -->
+    <section class="stats" id="stats">
+      <div class="container">
+        <div class="stats__grid">
+          <div class="stats__item">
+            <span class="stats__number">90%</span>
+            <span class="stats__label">Client Satisfaction</span>
+          </div>
+          <div class="stats__item">
+            <span class="stats__number">200+</span>
+            <span class="stats__label">Projects Completed</span>
+          </div>
+          <div class="stats__item">
+            <span class="stats__number">2018</span>
+            <span class="stats__label">Year Established</span>
+          </div>
+          <div class="stats__item">
+            <span class="stats__number">80+</span>
+            <span class="stats__label">Global Clients</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 4. ABOUT (Ring Graphic & Bio) -->
+    <!-- ========================================================= -->
+    <section class="about" id="about">
+      <div class="container about__container">
+        <div class="about__visual">
+          <div class="donut-chart">
+            <svg class="donut-chart__svg" viewBox="0 0 160 160">
+              <circle class="donut-chart__bg" cx="80" cy="80" r="64" />
+              <!-- Lime segment (~75%) -->
+              <circle class="donut-chart__segment donut-chart__segment--lime" cx="80" cy="80" r="64" stroke-dasharray="301 402" stroke-dashoffset="0" />
+              <!-- Orange segment (~25%) -->
+              <circle class="donut-chart__segment donut-chart__segment--orange" cx="80" cy="80" r="64" stroke-dasharray="100 402" stroke-dashoffset="-301" />
+            </svg>
+            <div class="donut-chart__center">
+              <span class="donut-chart__value">98%</span>
+              <span class="donut-chart__label">Tools Performance</span>
+            </div>
+            <!-- 3 Small Icon Chips orbiting -->
+            <div class="donut-chart__chip donut-chart__chip--1" title="Figma">F</div>
+            <div class="donut-chart__chip donut-chart__chip--2" title="Webflow">W</div>
+            <div class="donut-chart__chip donut-chart__chip--3" title="AI">AI</div>
+          </div>
+        </div>
+
+        <div class="about__content">
+          <h2 class="about__heading">
+            <span class="heading__dark">Designing digital experiences</span>
+            <span class="heading__muted">that balance beauty with business metrics.</span>
+          </h2>
+          <p class="about__text">
+            I am a senior product designer and design engineer with over 8 years of experience building scalable design systems and conversion-focused applications.
+          </p>
+          <p class="about__text">
+            My approach pairs deep qualitative user research with rigorous front-end implementation, ensuring every prototype looks stunning and functions flawlessly in production.
+          </p>
+          <a href="#about" class="btn btn--lime">About Me</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 5. TOOLS ROW (3 bordered cells) -->
+    <!-- ========================================================= -->
+    <section class="tools" id="tools">
+      <div class="container">
+        <div class="tools__grid">
+          <div class="tools__cell">
+            <div class="tools__header">
+              <span class="tools__name">Webflow</span>
+              <span class="tools__percentage">46%</span>
+            </div>
+            <div class="tools__bar">
+              <div class="tools__fill" style="width: 46%;"></div>
+            </div>
+          </div>
+          <div class="tools__cell">
+            <div class="tools__header">
+              <span class="tools__name">Figma</span>
+              <span class="tools__percentage">32%</span>
+            </div>
+            <div class="tools__bar">
+              <div class="tools__fill" style="width: 32%;"></div>
+            </div>
+          </div>
+          <div class="tools__cell">
+            <div class="tools__header">
+              <span class="tools__name">ChatGPT</span>
+              <span class="tools__percentage">22%</span>
+            </div>
+            <div class="tools__bar">
+              <div class="tools__fill" style="width: 22%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 6. SERVICES (Heading + Left List + Right Figma Card) -->
+    <!-- ========================================================= -->
+    <section class="services" id="services">
+      <div class="container">
+        <div class="services__top">
+          <h2 class="services__heading">
+            <span class="heading__dark">Comprehensive</span>
+            <span class="heading__muted">design & development services.</span>
+          </h2>
+          <p class="services__intro">
+            From initial research and wireframes to production-grade component tokens and interactive websites.
+          </p>
+        </div>
+
+        <div class="services__body">
+          <div class="services__list">
+            <div class="services__item services__item--active">
+              <span class="services__item-num">01.1</span>
+              <div class="services__item-info">
+                <h3 class="services__item-title">UI/UX Design</h3>
+                <p class="services__item-desc">User research, interactive wireframing, high-fidelity prototypes, and usability testing.</p>
+              </div>
+            </div>
+            <div class="services__item">
+              <span class="services__item-num">01.2</span>
+              <div class="services__item-info">
+                <h3 class="services__item-title">Design Systems</h3>
+                <p class="services__item-desc">Component tokens, variable architecture, responsive layout rules, and documentation.</p>
+              </div>
+            </div>
+            <div class="services__item">
+              <span class="services__item-num">01.3</span>
+              <div class="services__item-info">
+                <h3 class="services__item-title">Web Development</h3>
+                <p class="services__item-desc">Clean semantic HTML, modern CSS architecture, Next.js / Webflow, and micro-interactions.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="services__card">
+            <div class="services__card-header">
+              <h3 class="services__card-title">UI/UX Design</h3>
+              <span class="badge badge--lime">Figma</span>
+            </div>
+            <p class="services__card-subtitle">End-to-end design execution tailored for scalable venture-backed startups.</p>
+
+            <div class="services__features-grid">
+              <div class="services__feature">
+                <span class="services__feature-icon">✓</span>
+                <span class="services__feature-text">User Flow Mapping</span>
+              </div>
+              <div class="services__feature">
+                <span class="services__feature-icon">✓</span>
+                <span class="services__feature-text">Interactive Prototyping</span>
+              </div>
+              <div class="services__feature">
+                <span class="services__feature-icon">✓</span>
+                <span class="services__feature-text">Cross-platform UI</span>
+              </div>
+              <div class="services__feature">
+                <span class="services__feature-icon">✓</span>
+                <span class="services__feature-text">Token-based Handoff</span>
+              </div>
+            </div>
+
+            <a href="#contact" class="btn btn--gradient btn--full">Start a Project</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 7. TRUST BAR (Avatars + Rating + 3x2 Logo Grid) -->
+    <!-- ========================================================= -->
+    <section class="trust" id="trust">
+      <div class="container trust__container">
+        <div class="trust__social-proof">
+          <div class="trust__avatars">
+            <!-- PLACEHOLDER: Client avatars stack -->
+            <div class="avatar avatar--1"></div>
+            <div class="avatar avatar--2"></div>
+            <div class="avatar avatar--3"></div>
+            <div class="avatar avatar--4"></div>
+          </div>
+          <div class="trust__copy">
+            <span class="trust__client-count">Trusted by 200+ clients worldwide</span>
+            <div class="trust__rating">
+              <span class="trust__stars">★★★★★</span>
+              <span class="trust__score">4.8 Rating</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="trust__logos">
+          <!-- 3x2 Logo Grid Placeholders -->
+          <div class="logo-item" title="Stripe">STRIPE</div>
+          <div class="logo-item" title="Linear">LINEAR</div>
+          <div class="logo-item" title="Vercel">VERCEL</div>
+          <div class="logo-item" title="Raycast">RAYCAST</div>
+          <div class="logo-item" title="Supabase">SUPABASE</div>
+          <div class="logo-item" title="Airbnb">AIRBNB</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 8. PROJECTS (Heading, Tabs, 3 Cards with 3:4 ratio) -->
+    <!-- ========================================================= -->
+    <section class="projects" id="projects">
+      <div class="container">
+        <div class="projects__header">
+          <h2 class="projects__title">
+            <span class="heading__dark">Selected</span>
+            <span class="heading__muted">Projects 23' ↔ 25'</span>
+          </h2>
+          <div class="projects__actions">
+            <div class="projects__tabs">
+              <button type="button" class="projects__tab projects__tab--active">All</button>
+              <button type="button" class="projects__tab">UI/UX</button>
+              <button type="button" class="projects__tab">Branding</button>
+              <button type="button" class="projects__tab">Dev</button>
+            </div>
+            <a href="#projects" class="btn btn--outline">View All</a>
+          </div>
+        </div>
+
+        <div class="projects__grid">
+          <!-- Project Card 1 -->
+          <article class="project-card">
+            <!-- PLACEHOLDER: Project 1 visual (3:4 ratio) -->
+            <div class="project-card__image-wrap project-card__image-wrap--1">
+              <div class="media-placeholder project-card__img"></div>
+            </div>
+            <div class="project-card__meta">
+              <h3 class="project-card__name">Finova Mobile Banking</h3>
+              <span class="project-card__year">2024</span>
+            </div>
+            <span class="project-card__tag">Fintech UI/UX</span>
+          </article>
+
+          <!-- Project Card 2 with hover "+ View" label -->
+          <article class="project-card project-card--featured">
+            <!-- PLACEHOLDER: Project 2 visual (3:4 ratio) -->
+            <div class="project-card__image-wrap project-card__image-wrap--2">
+              <div class="media-placeholder project-card__img"></div>
+              <div class="project-card__hover-badge">+ View</div>
+            </div>
+            <div class="project-card__meta">
+              <h3 class="project-card__name">Orbital DeFi Protocol</h3>
+              <span class="project-card__year">2024</span>
+            </div>
+            <span class="project-card__tag">Web3 Dashboard</span>
+          </article>
+
+          <!-- Project Card 3 -->
+          <article class="project-card">
+            <!-- PLACEHOLDER: Project 3 visual (3:4 ratio) -->
+            <div class="project-card__image-wrap project-card__image-wrap--3">
+              <div class="media-placeholder project-card__img"></div>
+            </div>
+            <div class="project-card__meta">
+              <h3 class="project-card__name">Lumix Creative Canvas</h3>
+              <span class="project-card__year">2023</span>
+            </div>
+            <span class="project-card__tag">AI Studio System</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 9. PRICING (Two side-by-side plans + 3-column perks row) -->
+    <!-- ========================================================= -->
+    <section class="pricing" id="pricing">
+      <div class="container">
+        <div class="pricing__header">
+          <h2 class="pricing__title">
+            <span class="heading__dark">Flexible plans</span>
+            <span class="heading__muted">tailored to your exact scale.</span>
+          </h2>
+        </div>
+
+        <div class="pricing__grid">
+          <!-- Card 1: Basic Plan (Light) -->
+          <div class="pricing-card pricing-card--light">
+            <div class="pricing-card__top">
+              <div class="pricing-card__badge-row">
+                <span class="badge badge--lime">Basic</span>
+                <span class="pricing-card__sprint">MONTHLY SPRINT</span>
+              </div>
+              <div class="pricing-card__price">
+                <span class="pricing-card__amount">$4,650</span>
+                <span class="pricing-card__period">/ month</span>
+              </div>
+              <p class="pricing-card__desc">Ideal for fast-moving startups needing consistent design execution.</p>
+            </div>
+
+            <ul class="pricing-card__features">
+              <li>✓ 1 active request at a time</li>
+              <li>✓ Fast 48-hour typical delivery</li>
+              <li>✓ Unlimited design revisions</li>
+              <li>✓ Figma source files & assets</li>
+            </ul>
+
+            <a href="#contact" class="btn btn--gradient btn--full">Get Started</a>
+          </div>
+
+          <!-- Card 2: Business Plan (Dark) -->
+          <div class="pricing-card pricing-card--dark">
+            <div class="pricing-card__top">
+              <div class="pricing-card__badge-row">
+                <span class="badge badge--dark-pill">Business</span>
+                <span class="pricing-card__sprint">DEDICATED CAPACITY</span>
+              </div>
+              <div class="pricing-card__price">
+                <span class="pricing-card__amount">$2,940</span>
+                <span class="pricing-card__period">/ bi-weekly</span>
+              </div>
+              <p class="pricing-card__desc">For established teams scaling multiple product features simultaneously.</p>
+            </div>
+
+            <ul class="pricing-card__features">
+              <li>✓ 2 active requests at a time</li>
+              <li>✓ Priority 24-hour delivery</li>
+              <li>✓ Dedicated Slack channel access</li>
+              <li>✓ Production Next.js / CSS code</li>
+            </ul>
+
+            <a href="#contact" class="btn btn--white btn--full">Get Started</a>
+          </div>
+        </div>
+
+        <!-- 3-Column Perks Row -->
+        <div class="perks__grid">
+          <div class="perks__item">
+            <h4 class="perks__title">No Lock-in</h4>
+            <p class="perks__text">Pause or cancel your subscription anytime with zero friction.</p>
+          </div>
+          <div class="perks__item">
+            <h4 class="perks__title">Fast Turnaround</h4>
+            <p class="perks__text">Consistent delivery updates delivered every 24 to 48 hours.</p>
+          </div>
+          <div class="perks__item">
+            <h4 class="perks__title">100% IP Ownership</h4>
+            <p class="perks__text">All designs, tokens, and code belong entirely to your company.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 10. TESTIMONIALS (Tab names row + Photo + Quote) -->
+    <!-- ========================================================= -->
+    <section class="testimonials" id="testimonials">
+      <div class="container">
+        <!-- Tab names row -->
+        <div class="testimonials__tabs">
+          <button type="button" class="testimonials__tab testimonials__tab--active">Horizon AI</button>
+          <button type="button" class="testimonials__tab">Linear Systems</button>
+          <button type="button" class="testimonials__tab">Stripe Ecosystem</button>
+          <button type="button" class="testimonials__tab">Raycast Labs</button>
+        </div>
+
+        <div class="testimonials__card">
+          <!-- Large client photo placeholder on left -->
+          <div class="testimonials__photo-wrap">
+            <!-- PLACEHOLDER: Client portrait photo -->
+            <div class="media-placeholder testimonials__photo"></div>
+          </div>
+
+          <div class="testimonials__content">
+            <span class="badge badge--lime">Client Review</span>
+            <blockquote class="testimonials__quote">
+              “Alex completely transformed our product experience. Our conversion rate surged by 140% within 90 days after redesign. Highly recommended!”
+            </blockquote>
+            <div class="testimonials__author-row">
+              <div class="testimonials__author-info">
+                <span class="testimonials__author-name">David Sterling</span>
+                <span class="testimonials__author-role">VP of Product, Horizon AI</span>
+              </div>
+              <div class="testimonials__company-logo">HORIZON</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 11. BLOG (Heading, Tall Image left, 3 Post rows right) -->
+    <!-- ========================================================= -->
+    <section class="blog" id="blog">
+      <div class="container">
+        <div class="blog__header">
+          <h2 class="blog__title">
+            <span class="heading__dark">Latest thoughts</span>
+            <span class="heading__muted">&amp; design insights.</span>
+          </h2>
+          <a href="#blog" class="btn btn--outline">Read All Blogs</a>
+        </div>
+
+        <div class="blog__grid">
+          <!-- Tall Image on left -->
+          <div class="blog__featured-wrap">
+            <!-- PLACEHOLDER: Tall editorial photo -->
+            <div class="media-placeholder blog__featured-image"></div>
+            <div class="blog__featured-overlay">
+              <span class="badge badge--lime">Design Engineering</span>
+              <h3 class="blog__featured-title">How to Build High-Converting SaaS Landing Pages in 2024</h3>
+            </div>
+          </div>
+
+          <!-- 3 Post rows on right -->
+          <div class="blog__list">
+            <article class="blog-item">
+              <span class="blog-item__date">April 2024</span>
+              <h4 class="blog-item__title">The subtle art of micro-interactions in design systems</h4>
+              <a href="#blog" class="blog-item__link">Read More →</a>
+            </article>
+
+            <article class="blog-item">
+              <span class="blog-item__date">March 2024</span>
+              <h4 class="blog-item__title">Why typography is 90% of your visual brand identity</h4>
+              <a href="#blog" class="blog-item__link">Read More →</a>
+            </article>
+
+            <article class="blog-item">
+              <span class="blog-item__date">February 2024</span>
+              <h4 class="blog-item__title">Future of AI-assisted UI tools for solo agency founders</h4>
+              <a href="#blog" class="blog-item__link">Read More →</a>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 12. FAQ (4 Accordions using <details>, first open) -->
+    <!-- ========================================================= -->
+    <section class="faq" id="faq">
+      <div class="container faq__container">
+        <h2 class="faq__title">
+          <span class="heading__dark">Frequently</span>
+          <span class="heading__muted">asked questions.</span>
+        </h2>
+
+        <div class="faq__list">
+          <details class="faq__item" open>
+            <summary class="faq__summary">
+              <span>How quickly can we start on our first project?</span>
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Usually within 24 to 48 hours of onboarding. Once you subscribe, you receive access to your private Trello/Linear board to start requesting tasks immediately.</p>
+            </div>
+          </details>
+
+          <details class="faq__item">
+            <summary class="faq__summary">
+              <span>What does the typical turnaround time look like?</span>
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Most design requests and UI components are completed in 48 hours or less. Complex web apps or full landing pages are delivered in milestone-based sprints.</p>
+            </div>
+          </details>
+
+          <details class="faq__item">
+            <summary class="faq__summary">
+              <span>How does the monthly subscription work?</span>
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>You pay a flat monthly fee with no hidden costs or long-term lock-in. You can pause or cancel your subscription at any time with a single click.</p>
+            </div>
+          </details>
+
+          <details class="faq__item">
+            <summary class="faq__summary">
+              <span>What tools and tech stack do you use?</span>
+              <span class="faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="faq__answer">
+              <p>Figma for UI/UX and design systems; Webflow and clean HTML5/CSS/JavaScript for responsive, performant websites.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- 13. SOCIAL ROW (4 cells: Behance, Dribbble, LinkedIn, IG) -->
+    <!-- ========================================================= -->
+    <section class="social" id="social">
+      <div class="container">
+        <div class="social__grid">
+          <a href="https://behance.net" target="_blank" rel="noopener noreferrer" class="social__cell">
+            <span class="social__name">Behance</span>
+            <span class="social__arrow">↗</span>
+          </a>
+          <a href="https://dribbble.com" target="_blank" rel="noopener noreferrer" class="social__cell">
+            <span class="social__name">Dribbble</span>
+            <span class="social__arrow">↗</span>
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social__cell">
+            <span class="social__name">LinkedIn</span>
+            <span class="social__arrow">↗</span>
+          </a>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="social__cell">
+            <span class="social__name">Instagram</span>
+            <span class="social__arrow">↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- 14. FOOTER (Dark #121212 with giant faded Alex Travis.) -->
+  <!-- ========================================================= -->
+  <footer class="footer" id="contact">
+    <div class="container footer__container">
+      <div class="footer__top">
+        <div class="footer__intro">
+          <div class="footer__brand-row">
+            <div class="header__logo-icon header__logo-icon--dark">AT</div>
+            <span class="badge badge--lime">Available for work</span>
+          </div>
+          <p class="footer__text">
+            Have a project in mind or want to consult on design systems? Let’s create something extraordinary together.
+          </p>
+          <div class="footer__cta-row">
+            <a href="mailto:hello@alextravis.design" class="btn btn--gradient">Hire Me!</a>
+            <a href="mailto:hello@alextravis.design" class="footer__email">hello@alextravis.design</a>
+          </div>
+        </div>
+
+        <div class="footer__links-grid">
+          <div class="footer__col">
+            <h4 class="footer__col-title">Navigation</h4>
+            <ul class="footer__list">
+              <li><a href="#about">About</a></li>
+              <li><a href="#projects">Projects</a></li>
+              <li><a href="#pricing">Pricing</a></li>
+              <li><a href="#store">Store</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <h4 class="footer__col-title">Services</h4>
+            <ul class="footer__list">
+              <li><a href="#services">UI/UX Design</a></li>
+              <li><a href="#services">Design Systems</a></li>
+              <li><a href="#services">Web Engineering</a></li>
+              <li><a href="#services">Consulting</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <h4 class="footer__col-title">Socials</h4>
+            <ul class="footer__list">
+              <li><a href="https://dribbble.com" target="_blank" rel="noopener">Dribbble</a></li>
+              <li><a href="https://behance.net" target="_blank" rel="noopener">Behance</a></li>
+              <li><a href="https://linkedin.com" target="_blank" rel="noopener">LinkedIn</a></li>
+              <li><a href="https://twitter.com" target="_blank" rel="noopener">Twitter / X</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Giant Faded Alex Travis. Watermark -->
+      <div class="footer__watermark-wrap" aria-hidden="true">
+        <span class="footer__watermark">Alex Travis.</span>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="footer__bottom">
+        <span class="footer__copyright">© 2025 Alex Travis. All rights reserved.</span>
+        <div class="footer__legal">
+          <a href="#privacy">Privacy Policy</a>
+          <a href="#terms">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
