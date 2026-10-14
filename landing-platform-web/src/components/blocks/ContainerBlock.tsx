@@ -13,7 +13,6 @@ import {
   AlignCenter,
   AlignRight,
   ArrowRight,
-  Sparkles,
   X,
 } from 'lucide-react';
 

@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Search,
   Component,
+  PanelLeftClose,
 } from 'lucide-react';
 import { BlockType, ShadcnComponentType } from '../../../../shared/types';
 import { SHADCN_CATALOG } from '../shadcn-catalog/catalog-data';
@@ -36,6 +37,7 @@ interface ElementorSidebarProps {
   onMoveDown: (index: number) => void;
   onDuplicate: (index: number) => void;
   onDelete: (index: number) => void;
+  onClose?: () => void;
 }
 
 export function ElementorSidebar({
@@ -51,6 +53,7 @@ export function ElementorSidebar({
   onMoveDown,
   onDuplicate,
   onDelete,
+  onClose,
 }: ElementorSidebarProps) {
   const [localTab, setLocalTab] = useState<'shadcn' | 'navigator'>('shadcn');
   const currentTab = activeSidebarTab !== undefined ? activeSidebarTab : localTab;
@@ -83,43 +86,56 @@ export function ElementorSidebar({
 
   return (
     <aside className="w-80 border-r border-slate-200 dark:border-neutral-900 bg-white dark:bg-[#08090c] text-slate-800 dark:text-neutral-100 flex flex-col h-full sticky top-0 shrink-0 z-30 select-none transition-colors duration-200">
-      {/* 2-Tab Segmented Control: ShadCN | Navigator */}
-      <div className="flex border-b border-slate-200 dark:border-neutral-900 bg-slate-100/80 dark:bg-neutral-950 p-1 shrink-0">
-        <button
-          type="button"
-          onClick={() => setTab('shadcn')}
-          className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-[11px] font-semibold rounded-md transition-colors ${currentTab === 'shadcn'
-            ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-            : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-            }`}
-        >
-          <Component className="w-3 h-3 text-blue-500 dark:text-blue-400" />
-          <span>ShadCN UI ({SHADCN_CATALOG.length})</span>
-        </button>
+      {/* 2-Tab Segmented Control: ShadCN | Navigator + Close button */}
+      <div className="flex items-center border-b border-slate-200 dark:border-neutral-900 bg-slate-100/80 dark:bg-neutral-950 p-1 shrink-0 gap-1">
+        <div className="flex-1 flex gap-1">
+          <button
+            type="button"
+            onClick={() => setTab('shadcn')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium rounded-md transition-colors ${currentTab === 'shadcn'
+              ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+              : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
+              }`}
+          >
+            <Component className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+            <span>Components</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setTab('navigator')}
-          className={`flex-1 flex items-center justify-center gap-1 py-1.5 text-[11px] font-semibold rounded-md transition-colors ${currentTab === 'navigator'
-            ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-            : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-            }`}
-        >
-          <Layers className="w-3 h-3" />
-          <span>Tree ({blocks.length})</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setTab('navigator')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium rounded-md transition-colors ${currentTab === 'navigator'
+              ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+              : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
+              }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Layers ({blocks.length})</span>
+          </button>
+        </div>
+
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/80 dark:hover:bg-neutral-800 transition-colors"
+            title="Hide Left Sidebar"
+          >
+            <PanelLeftClose className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* Tab 2: All 64 ShadCN Components */}
+      {/* Tab 1: Components */}
       {currentTab === 'shadcn' && (
         <div className="flex-1 overflow-y-auto p-3 space-y-3 flex flex-col">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-neutral-400">
-                ShadCN UI Primitives
+                Components
               </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 text-blue-600 dark:text-blue-300 font-bold">
-                {SHADCN_CATALOG.length} Elements
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
+                {SHADCN_CATALOG.length}
               </span>
             </div>
             <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400">

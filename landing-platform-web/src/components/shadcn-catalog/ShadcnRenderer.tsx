@@ -35,7 +35,8 @@ import {
   Inbox,
   AlertTriangle,
   Bell,
-  Sparkles,
+  Component,
+  Tag,
   Command as CommandIcon,
   CheckCircle2,
   AlertCircle,
@@ -48,6 +49,7 @@ import {
   ArrowDown,
   GripVertical,
 } from 'lucide-react';
+import { DynamicIcon } from '../builder/IconPicker';
 
 export interface ShadcnRendererProps {
   component: ShadcnComponentInstance;
@@ -278,7 +280,7 @@ export function ShadcnRenderer({
       {!isPreviewMode && isSelected && (
         <div className="absolute -top-7 left-0 z-40 flex items-center gap-1 bg-[#0c0d14] border border-blue-500 shadow-2xl rounded-lg px-2 py-0.5 text-[10px] font-sans select-none animate-in fade-in duration-100">
           <span className="font-mono font-bold text-blue-400 mr-1 flex items-center gap-1">
-            <Sparkles className="w-2.5 h-2.5" />
+            <Component className="w-2.5 h-2.5" />
             {type}
           </span>
 
@@ -418,7 +420,11 @@ export function ShadcnRenderer({
               "Action Button",
               elementStyles.textColor ? { color: elementStyles.textColor } : undefined
             )}
-            <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+            <DynamicIcon
+              name={props.icon || "ArrowRight"}
+              className="w-3.5 h-3.5 shrink-0"
+              fallback={<ArrowRight className="w-3.5 h-3.5 shrink-0" />}
+            />
           </button>
         )}
 
@@ -677,7 +683,6 @@ export function ShadcnRenderer({
                 : "border-neutral-800/80 text-neutral-400 hover:text-neutral-200"
               }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
             {renderInlineEditable(props.label || "Toggle State", "label", "", "span", "Toggle State")}
           </button>
         )}
@@ -857,6 +862,9 @@ export function ShadcnRenderer({
               )
               }`}
           >
+            {props.icon && (
+              <DynamicIcon name={props.icon} className="w-3 h-3 shrink-0" />
+            )}
             {renderInlineEditable(
               props.label || props.text || "Badge Label",
               props.text ? "text" : "label",
@@ -1072,7 +1080,11 @@ export function ShadcnRenderer({
           <div className="flex items-center justify-between p-3 rounded-xl border border-neutral-800 bg-neutral-950/80 hover:bg-neutral-900/50 transition-all text-left">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-blue-950/60 border border-blue-800/60 flex items-center justify-center text-blue-400">
-                <Truck className="w-4 h-4" />
+                <DynamicIcon
+                  name={props.icon || "Truck"}
+                  className="w-4 h-4"
+                  fallback={<Truck className="w-4 h-4" />}
+                />
               </div>
               <div>
                 <div className="text-xs font-semibold text-white">
@@ -1710,7 +1722,7 @@ function CardAddElementMenu({
     { type: 'Typography', label: 'Typography Text', icon: TypeIcon, defaultProps: { variant: 'h4', text: 'Card Section Heading' } },
     { type: 'Label', label: 'Label / Description', icon: FileText, defaultProps: { text: 'Description text inside card.' } },
     { type: 'Button', label: 'Action Button', icon: ArrowRight, defaultProps: { label: 'Click Action', variant: 'default' } },
-    { type: 'Badge', label: 'Badge Pill', icon: Sparkles, defaultProps: { label: 'Special Offer', variant: 'success' } },
+    { type: 'Badge', label: 'Badge Pill', icon: Tag, defaultProps: { label: 'Special Offer', variant: 'success' } },
     { type: 'Input', label: 'Text Input', icon: Sliders, defaultProps: { placeholder: 'Enter email...' } },
     { type: 'Field', label: 'Form Field', icon: Check, defaultProps: { label: 'Customer Full Name', placeholder: 'e.g. Budi Santoso' } },
     { type: 'Separator', label: 'Divider Line', icon: Split, defaultProps: {} },

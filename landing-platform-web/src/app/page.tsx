@@ -33,6 +33,8 @@ import { ElementorSidebar, BlockItem } from '@/components/builder/ElementorSideb
 import { BlockLibraryModal } from '@/components/builder/BlockLibraryModal';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { StylesPanel } from '@/components/builder/StylesPanel';
+import { ImageSourcePicker } from '@/components/builder/ImageSourcePicker';
+import { IconPicker, DynamicIcon } from '@/components/builder/IconPicker';
 import { ALEX_TRAVIS_TEMPLATE } from '@/components/templates/alex-travis-template';
 import {
   AlexNavbarSection,
@@ -71,10 +73,10 @@ import {
   Palette,
   Type,
   Layout,
+  LayoutTemplate,
   Sliders,
   Box,
   Trash2,
-  Sparkles,
   Columns,
   LayoutGrid,
   Compass,
@@ -83,6 +85,13 @@ import {
   ChevronUp,
   ChevronDown,
   PlusCircle,
+  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRight,
+  PanelRightClose,
+  PanelRightOpen,
+  Pencil,
 } from 'lucide-react';
 
 const createUniqueId = (prefix: string) => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -94,6 +103,14 @@ export default function PlatformDashboard() {
   // Builder viewport mode
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+
+  // Editable Page Name
+  const [pageName, setPageName] = useState('Storefront Page');
+  const [isEditingPageName, setIsEditingPageName] = useState(false);
+
+  // Sidebar Visibility State (Hide / Show)
+  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
 
   // Sidebar & Layout State (Zero Modal Popups)
   const [sidebarTab, setSidebarTab] = useState<'shadcn' | 'navigator'>('shadcn');
@@ -112,6 +129,27 @@ export default function PlatformDashboard() {
   // Selected block for right inspector
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
+
+  // Keyboard shortcut (Cmd/Ctrl + B to toggle left sidebar)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA' ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setShowLeftSidebar((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // DnD Sensors setup
   const sensors = useSensors(
@@ -908,6 +946,7 @@ export default function PlatformDashboard() {
                 setSelectedBlockId(block.id);
                 setSelectedComponentId(compId);
                 setElementInspectorTab('styles');
+                setShowRightSidebar(true);
               }
             }}
             onAddComponentToColumn={(colIdx) => {
@@ -1072,12 +1111,37 @@ export default function PlatformDashboard() {
               Page Builder
             </button>
           </nav>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 font-bold">
-                SHADCN UI 52+
-              </span>
-            </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-neutral-400">
+            <span className="text-slate-300 dark:text-neutral-700">/</span>
+            {isEditingPageName ? (
+              <input
+                type="text"
+                value={pageName}
+                onChange={(e) => setPageName(e.target.value)}
+                onBlur={() => setIsEditingPageName(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === 'Escape') {
+                    setIsEditingPageName(false);
+                  }
+                }}
+                autoFocus
+                placeholder="Page Name..."
+                className="h-6 px-2 py-0.5 text-xs font-semibold rounded border border-blue-500 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white shadow-xs focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-48"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditingPageName(true)}
+                className="flex items-center gap-1.5 px-2 py-1 -mx-1 rounded-md hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors group cursor-pointer"
+                title="Click to rename page"
+              >
+                <span className="font-semibold text-xs text-slate-800 dark:text-neutral-200">
+                  {pageName || 'Untitled Page'}
+                </span>
+                <Pencil className="w-3 h-3 text-slate-400 group-hover:text-blue-500 transition-colors" />
+              </button>
+            )}
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block ml-0.5" title="Page Active"></span>
           </div>
         </div>
 
@@ -1110,6 +1174,32 @@ export default function PlatformDashboard() {
                 </button>
               </div>
 
+              {/* Sidebar Panels Visibility Toggles */}
+              <div className="flex items-center bg-slate-100 dark:bg-neutral-900/90 rounded-md p-0.5 border border-slate-200 dark:border-neutral-800 gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+                  className={`p-1.5 rounded transition-colors flex items-center justify-center ${showLeftSidebar
+                    ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-500 dark:text-neutral-500 hover:text-slate-800 dark:hover:text-neutral-300'
+                    }`}
+                  title={showLeftSidebar ? 'Hide Left Sidebar (Components & Tree) [Cmd+B]' : 'Show Left Sidebar (Components & Tree) [Cmd+B]'}
+                >
+                  <PanelLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRightSidebar(!showRightSidebar)}
+                  className={`p-1.5 rounded transition-colors flex items-center justify-center ${showRightSidebar
+                    ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-500 dark:text-neutral-500 hover:text-slate-800 dark:hover:text-neutral-300'
+                    }`}
+                  title={showRightSidebar ? 'Hide Right Inspector' : 'Show Right Inspector'}
+                >
+                  <PanelRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               {/* Theme Toggle (Light / Dark / System) */}
               <ThemeToggle />
 
@@ -1121,17 +1211,6 @@ export default function PlatformDashboard() {
               >
                 <Eye className="w-3.5 h-3.5 mr-1 text-slate-500 dark:text-neutral-400" />
                 {isPreviewMode ? 'Exit Preview' : 'Preview'}
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLoadAlexTravisTemplate}
-                className="text-xs h-8 bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-medium"
-                title="Load full Alex Travis portfolio landing page template"
-              >
-                <Sparkles className="w-3.5 h-3.5 mr-1" />
-                Template: Alex Travis
               </Button>
 
               {blocks.length > 0 && (
@@ -1188,28 +1267,58 @@ export default function PlatformDashboard() {
       <main className="flex-1 flex overflow-hidden relative min-h-0">
         {activeTab === 'builder' && (
           <div className="flex-1 flex w-full h-full overflow-hidden min-h-0">
-            {/* Left Sidebar (STICKY IN PLACE WITH 3 TABS: SECTIONS | SHADCN (52+) | NAVIGATOR) */}
-            {!isPreviewMode && (
+            {/* Left Sidebar (STICKY IN PLACE WITH 2 TABS: SHADCN (64) | NAVIGATOR) */}
+            {!isPreviewMode && showLeftSidebar && (
               <ElementorSidebar
                 blocks={blocks}
                 selectedBlockId={selectedBlockId}
                 activeSidebarTab={sidebarTab}
                 onSidebarTabChange={setSidebarTab}
                 targetColumnIndex={targetColumnIndex}
-                onSelectBlock={(id) => setSelectedBlockId(id)}
+                onSelectBlock={(id) => {
+                  setSelectedBlockId(id);
+                  setShowRightSidebar(true);
+                }}
                 onAddBlock={(type) => handleInsertSection(type)}
                 onAddShadcnToActiveSection={(type, defaultProps) => {
                   handleAddShadcnComponent(type, defaultProps);
+                  setShowRightSidebar(true);
                 }}
                 onMoveUp={moveBlockUp}
                 onMoveDown={moveBlockDown}
                 onDuplicate={duplicateBlock}
                 onDelete={deleteBlock}
+                onClose={() => setShowLeftSidebar(false)}
               />
             )}
 
             {/* Center Canvas: Independently Scrolling Canvas */}
-            <div className="flex-1 bg-slate-100/90 dark:bg-[#090a0e] p-4 md:p-8 overflow-y-auto h-full flex justify-center items-start min-h-0">
+            <div className="flex-1 bg-slate-100/90 dark:bg-[#090a0e] p-4 md:p-8 overflow-y-auto h-full flex justify-center items-start min-h-0 relative">
+              {/* Floating button to restore Left Sidebar if hidden */}
+              {!isPreviewMode && !showLeftSidebar && (
+                <button
+                  type="button"
+                  onClick={() => setShowLeftSidebar(true)}
+                  className="absolute left-3 top-4 z-40 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border border-slate-200/90 dark:border-neutral-800 shadow-md hover:bg-slate-50 dark:hover:bg-neutral-800 text-xs font-medium text-slate-700 dark:text-neutral-300 transition-all hover:scale-105 select-none"
+                  title="Show Left Sidebar (Components & Tree) [Cmd+B]"
+                >
+                  <PanelLeftOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span className="hidden sm:inline text-[11px]">Components</span>
+                </button>
+              )}
+
+              {/* Floating button to restore Right Sidebar if hidden */}
+              {!isPreviewMode && !showRightSidebar && (
+                <button
+                  type="button"
+                  onClick={() => setShowRightSidebar(true)}
+                  className="absolute right-3 top-4 z-40 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border border-slate-200/90 dark:border-neutral-800 shadow-md hover:bg-slate-50 dark:hover:bg-neutral-800 text-xs font-medium text-slate-700 dark:text-neutral-300 transition-all hover:scale-105 select-none"
+                  title="Show Right Inspector"
+                >
+                  <span className="hidden sm:inline text-[11px]">Inspector</span>
+                  <PanelRightOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                </button>
+              )}
               <div
                 className={`transition-all duration-200 w-full h-fit self-start ${viewport === 'mobile'
                   ? 'max-w-97.5 border border-slate-300 dark:border-neutral-800 rounded-3xl p-4 shadow-2xl bg-white dark:bg-[#08090c] mb-12'
@@ -1220,7 +1329,7 @@ export default function PlatformDashboard() {
               >
                 {blocks.length === 0 ? (
                   /* High-Craft Empty State Canvas */
-                  <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-3xl border-2 border-dashed border-slate-300 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/70 shadow-lg dark:shadow-2xl space-y-5 my-8">
+                  <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-3xl border-2 border-dashed border-slate-300 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/70 shadow-lg dark:shadow-2xl space-y-5 my-0">
                     <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex items-center justify-center shadow-inner">
                       <Box className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                     </div>
@@ -1229,31 +1338,31 @@ export default function PlatformDashboard() {
                         Your Page Canvas is Empty
                       </h3>
                       <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 leading-relaxed">
-                        Start building your landing page by inserting a Container section (Flexbox or CSS Grid) composed with ShadCN UI components, or load the complete design template below.
+                        Start building your page by adding a container section below, or load a pre-built portfolio template.
                       </p>
                     </div>
 
                     {/* Featured Full Design Template Card */}
-                    <div className="w-full max-w-lg p-4 sm:p-5 rounded-2xl bg-linear-to-r from-amber-500/10 via-orange-500/10 to-pink-500/10 border-2 border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-left shadow-md">
+                    <div className="w-full max-w-lg p-5 rounded-2xl bg-slate-50/90 dark:bg-neutral-900/60 border border-slate-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-left transition-all hover:border-slate-300 dark:hover:border-neutral-700">
                       <div className="space-y-1">
-                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold uppercase tracking-wider">
-                          <Sparkles className="w-3 h-3" />
-                          Design Mockup Template
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 text-[10px] font-semibold uppercase tracking-wider">
+                          <LayoutTemplate className="w-3 h-3 text-slate-600 dark:text-neutral-400" />
+                          Starter Template
                         </div>
                         <div className="text-sm font-bold text-slate-900 dark:text-white">
                           Alex Travis • Designer &amp; SaaS Portfolio
                         </div>
-                        <div className="text-[11px] text-slate-600 dark:text-neutral-400">
-                          14 fully editable sections: Hero, Metrics, Performance Ring, Services, Portfolio 3-Cards, Dual Pricing, Testimonial, Articles &amp; Footer.
+                        <div className="text-[11px] text-slate-500 dark:text-neutral-400">
+                          14 editable sections: Hero, Metrics, Performance Ring, Services, Portfolio, Pricing &amp; Footer.
                         </div>
                       </div>
                       <Button
                         type="button"
                         size="sm"
                         onClick={handleLoadAlexTravisTemplate}
-                        className="bg-linear-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold shadow-md shrink-0 text-xs px-4 py-2"
+                        className="bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-neutral-900 font-medium shadow-sm shrink-0 text-xs px-4 py-2"
                       >
-                        <Sparkles className="w-3.5 h-3.5 mr-1" />
+                        <LayoutTemplate className="w-3.5 h-3.5 mr-1.5" />
                         Load Template
                       </Button>
                     </div>
@@ -1281,7 +1390,7 @@ export default function PlatformDashboard() {
                         onClick={() => handleInsertSection('hero')}
                         className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-neutral-900/60 hover:bg-slate-100 dark:hover:bg-neutral-800 hover:border-blue-500/60 text-left transition-all group"
                       >
-                        <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <Layout className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                         <div>
                           <div className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300">
                             + Hero Section
@@ -1359,6 +1468,7 @@ export default function PlatformDashboard() {
                               onSelect={() => {
                                 setSelectedBlockId(block.id);
                                 setSelectedComponentId(null);
+                                setShowRightSidebar(true);
                               }}
                               onMoveUp={() => moveBlockUp(index)}
                               onMoveDown={() => moveBlockDown(index)}
@@ -1383,10 +1493,10 @@ export default function PlatformDashboard() {
                           <Plus className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-semibold text-slate-800 dark:text-neutral-300 group-hover:text-blue-600 dark:group-hover:text-white">
-                          Add New Container Section
+                          Add Section
                         </span>
                         <span className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                          Choose Flexbox or CSS Grid Container with 64 ShadCN UI Components
+                          Insert a Flexbox or Grid container to arrange blocks and elements
                         </span>
                       </div>
                     )}
@@ -1396,7 +1506,7 @@ export default function PlatformDashboard() {
             </div>
 
             {/* Right Sidebar: Dynamic Block & Element Inspector (STICKY IN PLACE) */}
-            {!isPreviewMode && (
+            {!isPreviewMode && showRightSidebar && (
               selectedComponent ? (
                 <aside className="w-80 border-l border-slate-200 dark:border-neutral-900 bg-white dark:bg-[#08090c] p-4 overflow-y-auto h-full sticky top-0 shrink-0 z-30 space-y-4 hidden lg:block select-none">
                   {/* Element Inspector Header */}
@@ -1461,6 +1571,15 @@ export default function PlatformDashboard() {
                         title="Delete Element"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowRightSidebar(false)}
+                        className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors ml-0.5"
+                        title="Hide Inspector Sidebar"
+                      >
+                        <PanelRightClose className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -1530,15 +1649,32 @@ export default function PlatformDashboard() {
                         </div>
                       )}
 
-                      {'src' in (selectedComponent.props || {}) && (
-                        <div>
-                          <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Image Source URL</label>
-                          <Input
-                            value={selectedComponent.props?.src ?? ''}
-                            onChange={(e) => updateComponentProp(selectedComponent.id, 'src', e.target.value)}
-                            placeholder="https://images.unsplash.com/..."
-                          />
-                        </div>
+                      {/* Image source controls (URL or Device upload) */}
+                      {('src' in (selectedComponent.props || {}) || selectedComponent.type === 'Avatar') && (
+                        <ImageSourcePicker
+                          label="Avatar / Image Source"
+                          value={selectedComponent.props?.src ?? ''}
+                          onChange={(val) => updateComponentProp(selectedComponent.id, 'src', val)}
+                          placeholder="Enter image URL or choose file from device..."
+                        />
+                      )}
+
+                      {('imageUrl' in (selectedComponent.props || {}) || selectedComponent.type === 'AspectRatio') && (
+                        <ImageSourcePicker
+                          label="Image Source"
+                          value={selectedComponent.props?.imageUrl ?? ''}
+                          onChange={(val) => updateComponentProp(selectedComponent.id, 'imageUrl', val)}
+                          placeholder="Enter image URL or choose file from device..."
+                        />
+                      )}
+
+                      {'imgUrl' in (selectedComponent.props || {}) && (
+                        <ImageSourcePicker
+                          label="Image Source"
+                          value={selectedComponent.props?.imgUrl ?? ''}
+                          onChange={(val) => updateComponentProp(selectedComponent.id, 'imgUrl', val)}
+                          placeholder="Enter image URL or choose file from device..."
+                        />
                       )}
 
                       {'href' in (selectedComponent.props || {}) && (
@@ -1550,6 +1686,14 @@ export default function PlatformDashboard() {
                             placeholder="https://..."
                           />
                         </div>
+                      )}
+
+                      {('icon' in (selectedComponent.props || {}) || ['Item', 'Button', 'Badge', 'Alert', 'Message'].includes(selectedComponent.type)) && (
+                        <IconPicker
+                          label="Component Icon"
+                          value={selectedComponent.props?.icon || ''}
+                          onChange={(val) => updateComponentProp(selectedComponent.id, 'icon', val)}
+                        />
                       )}
 
                       {/* Variant selector */}
@@ -1689,36 +1833,47 @@ export default function PlatformDashboard() {
                       </div>
                     </div>
 
-                    {/* Inspector Mode Switcher */}
-                    <div className="flex bg-slate-100 dark:bg-neutral-900 p-0.5 rounded-md border border-slate-200 dark:border-neutral-800">
-                      {activeBlock.type === 'CONTAINER' && (
+                    <div className="flex items-center gap-1.5">
+                      {/* Inspector Mode Switcher */}
+                      <div className="flex bg-slate-100 dark:bg-neutral-900 p-0.5 rounded-md border border-slate-200 dark:border-neutral-800">
+                        {activeBlock.type === 'CONTAINER' && (
+                          <button
+                            onClick={() => setInspectorTab('layout')}
+                            className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${inspectorTab === 'layout'
+                              ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
+                              : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
+                              }`}
+                          >
+                            Layout
+                          </button>
+                        )}
                         <button
-                          onClick={() => setInspectorTab('layout')}
-                          className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${inspectorTab === 'layout'
+                          onClick={() => setInspectorTab('content')}
+                          className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${inspectorTab === 'content'
                             ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
                             : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
                             }`}
                         >
-                          Layout
+                          Content
                         </button>
-                      )}
+                        <button
+                          onClick={() => setInspectorTab('styles')}
+                          className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${inspectorTab === 'styles'
+                            ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
+                            : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
+                            }`}
+                        >
+                          Styles
+                        </button>
+                      </div>
+
                       <button
-                        onClick={() => setInspectorTab('content')}
-                        className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${inspectorTab === 'content'
-                          ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                          : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-                          }`}
+                        type="button"
+                        onClick={() => setShowRightSidebar(false)}
+                        className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors ml-0.5"
+                        title="Hide Inspector Sidebar"
                       >
-                        Content
-                      </button>
-                      <button
-                        onClick={() => setInspectorTab('styles')}
-                        className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${inspectorTab === 'styles'
-                          ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                          : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-200'
-                          }`}
-                      >
-                        Styles
+                        <PanelRightClose className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -1919,6 +2074,213 @@ export default function PlatformDashboard() {
                                   onChange={(e) => updateActiveContent('ctaText', e.target.value)}
                                 />
                               </div>
+
+                              {/* Cart / Action Icon & Badge */}
+                              <div className="p-3 rounded-lg border border-slate-200 dark:border-neutral-800 space-y-2.5">
+                                <div className="text-[11px] font-bold text-slate-700 dark:text-neutral-200">Cart / Action Button</div>
+                                <IconPicker
+                                  label="Icon"
+                                  value={activeBlock.content.actionIcon || 'ShoppingCart'}
+                                  onChange={(val) => updateActiveContent('actionIcon', val)}
+                                />
+                                <div>
+                                  <label className="block text-[11px] text-slate-600 dark:text-neutral-400 mb-1">Badge Count</label>
+                                  <Input
+                                    value={activeBlock.content.cartBadgeCount ?? '0'}
+                                    onChange={(e) => updateActiveContent('cartBadgeCount', e.target.value)}
+                                    placeholder="e.g. 0 or 3"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Nav Menu Links Manager */}
+                              <div className="p-3 rounded-lg border border-slate-200 dark:border-neutral-800 space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-[11px] font-bold text-slate-700 dark:text-neutral-200">Menu Navigation Links</div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    type="button"
+                                    onClick={() => {
+                                      const current = activeBlock.content.navLinks || [
+                                        { label: 'About', href: '#about' },
+                                        { label: 'Project', href: '#projects' },
+                                        { label: 'Pricing', href: '#pricing' },
+                                        { label: 'Store', href: '#store' },
+                                      ];
+                                      updateActiveContent('navLinks', [...current, { label: 'New Link', href: '#' }]);
+                                    }}
+                                    className="h-6 px-2 text-[10px] text-blue-600 hover:text-blue-700"
+                                  >
+                                    <Plus className="w-3 h-3 mr-1" /> Add Link
+                                  </Button>
+                                </div>
+
+                                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                  {(activeBlock.content.navLinks || [
+                                    { label: 'About', href: '#about' },
+                                    { label: 'Project', href: '#projects' },
+                                    { label: 'Pricing', href: '#pricing' },
+                                    { label: 'Store', href: '#store' },
+                                  ]).map((link: any, li: number) => (
+                                    <div key={li} className="p-2 rounded border border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 space-y-1.5">
+                                      <div className="flex items-center gap-1.5">
+                                        <Input
+                                          value={link.label || ''}
+                                          onChange={(e) => {
+                                            const current = [
+                                              ...(activeBlock.content.navLinks || [
+                                                { label: 'About', href: '#about' },
+                                                { label: 'Project', href: '#projects' },
+                                                { label: 'Pricing', href: '#pricing' },
+                                                { label: 'Store', href: '#store' },
+                                              ]),
+                                            ];
+                                            current[li] = { ...current[li], label: e.target.value };
+                                            updateActiveContent('navLinks', current);
+                                          }}
+                                          placeholder="Label"
+                                          className="h-7 text-xs flex-1"
+                                        />
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          type="button"
+                                          onClick={() => {
+                                            const current = [
+                                              ...(activeBlock.content.navLinks || [
+                                                { label: 'About', href: '#about' },
+                                                { label: 'Project', href: '#projects' },
+                                                { label: 'Pricing', href: '#pricing' },
+                                                { label: 'Store', href: '#store' },
+                                              ]),
+                                            ];
+                                            current.splice(li, 1);
+                                            updateActiveContent('navLinks', current);
+                                          }}
+                                          className="h-7 w-7 p-0 text-slate-400 hover:text-red-500"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                      <Input
+                                        value={link.href || ''}
+                                        onChange={(e) => {
+                                          const current = [
+                                            ...(activeBlock.content.navLinks || [
+                                              { label: 'About', href: '#about' },
+                                              { label: 'Project', href: '#projects' },
+                                              { label: 'Pricing', href: '#pricing' },
+                                              { label: 'Store', href: '#store' },
+                                            ]),
+                                          ];
+                                          current[li] = { ...current[li], href: e.target.value };
+                                          updateActiveContent('navLinks', current);
+                                        }}
+                                        placeholder="Href (e.g. #about)"
+                                        className="h-6 text-[11px] font-mono"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Pages Dropdown Links Manager */}
+                              <div className="p-3 rounded-lg border border-slate-200 dark:border-neutral-800 space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-[11px] font-bold text-slate-700 dark:text-neutral-200">Pages Dropdown Menu Items</div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    type="button"
+                                    onClick={() => {
+                                      const current = activeBlock.content.pagesLinks || [
+                                        { label: 'Services', href: '#services' },
+                                        { label: 'Reviews', href: '#testimonials' },
+                                        { label: 'FAQ', href: '#faq' },
+                                      ];
+                                      updateActiveContent('pagesLinks', [...current, { label: 'New Item', href: '#' }]);
+                                    }}
+                                    className="h-6 px-2 text-[10px] text-blue-600 hover:text-blue-700"
+                                  >
+                                    <Plus className="w-3 h-3 mr-1" /> Add Item
+                                  </Button>
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] text-slate-600 dark:text-neutral-400 mb-1">Dropdown Trigger Label</label>
+                                  <Input
+                                    value={activeBlock.content.dropdownLabel || 'Pages'}
+                                    onChange={(e) => updateActiveContent('dropdownLabel', e.target.value)}
+                                    placeholder="e.g. Pages"
+                                    className="h-7 text-xs"
+                                  />
+                                </div>
+
+                                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                  {(activeBlock.content.pagesLinks || [
+                                    { label: 'Services', href: '#services' },
+                                    { label: 'Reviews', href: '#testimonials' },
+                                    { label: 'FAQ', href: '#faq' },
+                                  ]).map((pLink: any, pi: number) => (
+                                    <div key={pi} className="p-2 rounded border border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 space-y-1.5">
+                                      <div className="flex items-center gap-1.5">
+                                        <Input
+                                          value={pLink.label || ''}
+                                          onChange={(e) => {
+                                            const current = [
+                                              ...(activeBlock.content.pagesLinks || [
+                                                { label: 'Services', href: '#services' },
+                                                { label: 'Reviews', href: '#testimonials' },
+                                                { label: 'FAQ', href: '#faq' },
+                                              ]),
+                                            ];
+                                            current[pi] = { ...current[pi], label: e.target.value };
+                                            updateActiveContent('pagesLinks', current);
+                                          }}
+                                          placeholder="Label"
+                                          className="h-7 text-xs flex-1"
+                                        />
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          type="button"
+                                          onClick={() => {
+                                            const current = [
+                                              ...(activeBlock.content.pagesLinks || [
+                                                { label: 'Services', href: '#services' },
+                                                { label: 'Reviews', href: '#testimonials' },
+                                                { label: 'FAQ', href: '#faq' },
+                                              ]),
+                                            ];
+                                            current.splice(pi, 1);
+                                            updateActiveContent('pagesLinks', current);
+                                          }}
+                                          className="h-7 w-7 p-0 text-slate-400 hover:text-red-500"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                      <Input
+                                        value={pLink.href || ''}
+                                        onChange={(e) => {
+                                          const current = [
+                                            ...(activeBlock.content.pagesLinks || [
+                                              { label: 'Services', href: '#services' },
+                                              { label: 'Reviews', href: '#testimonials' },
+                                              { label: 'FAQ', href: '#faq' },
+                                            ]),
+                                          ];
+                                          current[pi] = { ...current[pi], href: e.target.value };
+                                          updateActiveContent('pagesLinks', current);
+                                        }}
+                                        placeholder="Href (e.g. #services)"
+                                        className="h-6 text-[11px] font-mono"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </>
                           )}
 
@@ -2011,13 +2373,12 @@ export default function PlatformDashboard() {
                                   onChange={(e) => updateActiveContent('roiGrowth', e.target.value)}
                                 />
                               </div>
-                              <div>
-                                <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Profile Photo URL</label>
-                                <Input
-                                  value={activeBlock.content.avatarUrl || ''}
-                                  onChange={(e) => updateActiveContent('avatarUrl', e.target.value)}
-                                />
-                              </div>
+                              <ImageSourcePicker
+                                label="Profile Photo (Hero)"
+                                value={activeBlock.content.avatarUrl || ''}
+                                onChange={(val) => updateActiveContent('avatarUrl', val)}
+                                placeholder="Enter photo URL or choose file from device..."
+                              />
                             </>
                           )}
 
@@ -2232,6 +2593,85 @@ export default function PlatformDashboard() {
                                   value={activeBlock.content.cardCta || ''}
                                   onChange={(e) => updateActiveContent('cardCta', e.target.value)}
                                 />
+
+                                {/* Feature Card Checklist Items */}
+                                <div className="pt-2 border-t border-slate-200 dark:border-neutral-800 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="text-[11px] font-bold text-slate-700 dark:text-neutral-200">Card Features Checklist</div>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      type="button"
+                                      onClick={() => {
+                                        const current = activeBlock.content.cardFeatures || [
+                                          'User Flow Mapping',
+                                          'Interactive Prototyping',
+                                          'Cross-platform UI',
+                                          'Token-based Handoff',
+                                        ];
+                                        updateActiveContent('cardFeatures', [...current, 'New Feature Item']);
+                                      }}
+                                      className="h-6 px-2 text-[10px] text-blue-600 hover:text-blue-700"
+                                    >
+                                      <Plus className="w-3 h-3 mr-1" /> Add
+                                    </Button>
+                                  </div>
+
+                                  <IconPicker
+                                    label="Bullet Icon"
+                                    value={activeBlock.content.cardFeatureIcon || 'Check'}
+                                    onChange={(val) => updateActiveContent('cardFeatureIcon', val)}
+                                  />
+
+                                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                                    {(activeBlock.content.cardFeatures || [
+                                      'User Flow Mapping',
+                                      'Interactive Prototyping',
+                                      'Cross-platform UI',
+                                      'Token-based Handoff',
+                                    ]).map((feat: string, fi: number) => (
+                                      <div key={fi} className="flex items-center gap-1.5">
+                                        <Input
+                                          value={feat}
+                                          onChange={(e) => {
+                                            const current = [
+                                              ...(activeBlock.content.cardFeatures || [
+                                                'User Flow Mapping',
+                                                'Interactive Prototyping',
+                                                'Cross-platform UI',
+                                                'Token-based Handoff',
+                                              ]),
+                                            ];
+                                            current[fi] = e.target.value;
+                                            updateActiveContent('cardFeatures', current);
+                                          }}
+                                          className="h-7 text-xs flex-1"
+                                          placeholder={`Feature ${fi + 1}`}
+                                        />
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          type="button"
+                                          onClick={() => {
+                                            const current = [
+                                              ...(activeBlock.content.cardFeatures || [
+                                                'User Flow Mapping',
+                                                'Interactive Prototyping',
+                                                'Cross-platform UI',
+                                                'Token-based Handoff',
+                                              ]),
+                                            ];
+                                            current.splice(fi, 1);
+                                            updateActiveContent('cardFeatures', current);
+                                          }}
+                                          className="h-7 w-7 p-0 text-slate-400 hover:text-red-500"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
                             </>
                           )}
@@ -2323,14 +2763,15 @@ export default function PlatformDashboard() {
                                         updateActiveContent('projects', newProj);
                                       }}
                                     />
-                                    <Input
-                                      placeholder="Image URL"
+                                    <ImageSourcePicker
+                                      label="Project Image"
                                       value={proj.imgUrl || ''}
-                                      onChange={(e) => {
+                                      onChange={(val) => {
                                         const newProj = [...(activeBlock.content.projects || [])];
-                                        newProj[i] = { ...newProj[i], imgUrl: e.target.value };
+                                        newProj[i] = { ...newProj[i], imgUrl: val };
                                         updateActiveContent('projects', newProj);
                                       }}
+                                      placeholder="Image URL or upload from device..."
                                     />
                                   </div>
                                 ))}
@@ -2387,6 +2828,77 @@ export default function PlatformDashboard() {
                                   value={activeBlock.content.standard?.cta || ''}
                                   onChange={(e) => updateActiveContent('standard', { ...activeBlock.content.standard, cta: e.target.value })}
                                 />
+                                {/* Standard features manager */}
+                                <div className="pt-2 border-t border-slate-200 dark:border-neutral-800 space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-slate-600 dark:text-neutral-300">Features Checklist</span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      type="button"
+                                      onClick={() => {
+                                        const current = activeBlock.content.standard?.features || [
+                                          '1 active request at a time',
+                                          'Fast 48-hour typical delivery',
+                                          'Unlimited design revisions',
+                                          'Figma source files & assets',
+                                        ];
+                                        updateActiveContent('standard', {
+                                          ...activeBlock.content.standard,
+                                          features: [...current, 'New included feature'],
+                                        });
+                                      }}
+                                      className="h-5 px-1.5 text-[10px] text-blue-600"
+                                    >
+                                      <Plus className="w-2.5 h-2.5 mr-0.5" /> Add
+                                    </Button>
+                                  </div>
+                                  {(activeBlock.content.standard?.features || [
+                                    '1 active request at a time',
+                                    'Fast 48-hour typical delivery',
+                                    'Unlimited design revisions',
+                                    'Figma source files & assets',
+                                  ]).map((feat: string, fi: number) => (
+                                    <div key={fi} className="flex items-center gap-1">
+                                      <Input
+                                        value={feat}
+                                        onChange={(e) => {
+                                          const current = [
+                                            ...(activeBlock.content.standard?.features || [
+                                              '1 active request at a time',
+                                              'Fast 48-hour typical delivery',
+                                              'Unlimited design revisions',
+                                              'Figma source files & assets',
+                                            ]),
+                                          ];
+                                          current[fi] = e.target.value;
+                                          updateActiveContent('standard', { ...activeBlock.content.standard, features: current });
+                                        }}
+                                        className="h-6 text-[11px] flex-1"
+                                      />
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        type="button"
+                                        onClick={() => {
+                                          const current = [
+                                            ...(activeBlock.content.standard?.features || [
+                                              '1 active request at a time',
+                                              'Fast 48-hour typical delivery',
+                                              'Unlimited design revisions',
+                                              'Figma source files & assets',
+                                            ]),
+                                          ];
+                                          current.splice(fi, 1);
+                                          updateActiveContent('standard', { ...activeBlock.content.standard, features: current });
+                                        }}
+                                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-500"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                               <div className="p-3 rounded-lg border border-slate-200 dark:border-neutral-800 space-y-2">
                                 <div className="text-[11px] font-bold text-slate-700 dark:text-neutral-200">Business Tier (Black Card)</div>
@@ -2420,6 +2932,77 @@ export default function PlatformDashboard() {
                                   value={activeBlock.content.enterprise?.cta || ''}
                                   onChange={(e) => updateActiveContent('enterprise', { ...activeBlock.content.enterprise, cta: e.target.value })}
                                 />
+                                {/* Enterprise features manager */}
+                                <div className="pt-2 border-t border-slate-200 dark:border-neutral-800 space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-slate-600 dark:text-neutral-300">Features Checklist</span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      type="button"
+                                      onClick={() => {
+                                        const current = activeBlock.content.enterprise?.features || [
+                                          '2 active requests at a time',
+                                          'Priority 24-hour delivery',
+                                          'Dedicated Slack channel access',
+                                          'Production Next.js / CSS code',
+                                        ];
+                                        updateActiveContent('enterprise', {
+                                          ...activeBlock.content.enterprise,
+                                          features: [...current, 'New included feature'],
+                                        });
+                                      }}
+                                      className="h-5 px-1.5 text-[10px] text-blue-600"
+                                    >
+                                      <Plus className="w-2.5 h-2.5 mr-0.5" /> Add
+                                    </Button>
+                                  </div>
+                                  {(activeBlock.content.enterprise?.features || [
+                                    '2 active requests at a time',
+                                    'Priority 24-hour delivery',
+                                    'Dedicated Slack channel access',
+                                    'Production Next.js / CSS code',
+                                  ]).map((feat: string, fi: number) => (
+                                    <div key={fi} className="flex items-center gap-1">
+                                      <Input
+                                        value={feat}
+                                        onChange={(e) => {
+                                          const current = [
+                                            ...(activeBlock.content.enterprise?.features || [
+                                              '2 active requests at a time',
+                                              'Priority 24-hour delivery',
+                                              'Dedicated Slack channel access',
+                                              'Production Next.js / CSS code',
+                                            ]),
+                                          ];
+                                          current[fi] = e.target.value;
+                                          updateActiveContent('enterprise', { ...activeBlock.content.enterprise, features: current });
+                                        }}
+                                        className="h-6 text-[11px] flex-1"
+                                      />
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        type="button"
+                                        onClick={() => {
+                                          const current = [
+                                            ...(activeBlock.content.enterprise?.features || [
+                                              '2 active requests at a time',
+                                              'Priority 24-hour delivery',
+                                              'Dedicated Slack channel access',
+                                              'Production Next.js / CSS code',
+                                            ]),
+                                          ];
+                                          current.splice(fi, 1);
+                                          updateActiveContent('enterprise', { ...activeBlock.content.enterprise, features: current });
+                                        }}
+                                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-500"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </>
                           )}
@@ -2464,13 +3047,12 @@ export default function PlatformDashboard() {
                                   onChange={(e) => updateActiveContent('companyLogo', e.target.value)}
                                 />
                               </div>
-                              <div>
-                                <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Client Photo URL</label>
-                                <Input
-                                  value={activeBlock.content.avatarUrl || ''}
-                                  onChange={(e) => updateActiveContent('avatarUrl', e.target.value)}
-                                />
-                              </div>
+                              <ImageSourcePicker
+                                label="Client Photo"
+                                value={activeBlock.content.avatarUrl || ''}
+                                onChange={(val) => updateActiveContent('avatarUrl', val)}
+                                placeholder="Enter photo URL or choose file from device..."
+                              />
                             </>
                           )}
 
@@ -2510,10 +3092,11 @@ export default function PlatformDashboard() {
                                   value={activeBlock.content.featured?.tag || ''}
                                   onChange={(e) => updateActiveContent('featured', { ...activeBlock.content.featured, tag: e.target.value })}
                                 />
-                                <Input
-                                  placeholder="Image URL"
+                                <ImageSourcePicker
+                                  label="Article Image"
                                   value={activeBlock.content.featured?.imgUrl || ''}
-                                  onChange={(e) => updateActiveContent('featured', { ...activeBlock.content.featured, imgUrl: e.target.value })}
+                                  onChange={(val) => updateActiveContent('featured', { ...activeBlock.content.featured, imgUrl: val })}
+                                  placeholder="Image URL or upload from device..."
                                 />
                               </div>
                             </>
@@ -2696,6 +3279,98 @@ export default function PlatformDashboard() {
                               onChange={(e) => updateActiveContent('ctaText', e.target.value)}
                             />
                           </div>
+
+                          {/* Nav Menu Links Manager for standard NAVBAR */}
+                          <div className="p-3 rounded-lg border border-slate-200 dark:border-neutral-800 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <div className="text-[11px] font-bold text-slate-700 dark:text-neutral-200">Menu Navigation Links</div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                type="button"
+                                onClick={() => {
+                                  const current = activeBlock.content.navLinks || [
+                                    { label: 'Overview', href: '#hero' },
+                                    { label: 'Specs', href: '#spotlight' },
+                                    { label: 'Reviews', href: '#reviews' },
+                                    { label: 'FAQ', href: '#faq' },
+                                  ];
+                                  updateActiveContent('navLinks', [...current, { label: 'New Link', href: '#' }]);
+                                }}
+                                className="h-6 px-2 text-[10px] text-blue-600 hover:text-blue-700"
+                              >
+                                <Plus className="w-3 h-3 mr-1" /> Add Link
+                              </Button>
+                            </div>
+
+                            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                              {(activeBlock.content.navLinks || [
+                                { label: 'Overview', href: '#hero' },
+                                { label: 'Specs', href: '#spotlight' },
+                                { label: 'Reviews', href: '#reviews' },
+                                { label: 'FAQ', href: '#faq' },
+                              ]).map((link: any, li: number) => (
+                                <div key={li} className="p-2 rounded border border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 space-y-1.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <Input
+                                      value={link.label || ''}
+                                      onChange={(e) => {
+                                        const current = [
+                                          ...(activeBlock.content.navLinks || [
+                                            { label: 'Overview', href: '#hero' },
+                                            { label: 'Specs', href: '#spotlight' },
+                                            { label: 'Reviews', href: '#reviews' },
+                                            { label: 'FAQ', href: '#faq' },
+                                          ]),
+                                        ];
+                                        current[li] = { ...current[li], label: e.target.value };
+                                        updateActiveContent('navLinks', current);
+                                      }}
+                                      placeholder="Label"
+                                      className="h-7 text-xs flex-1"
+                                    />
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      type="button"
+                                      onClick={() => {
+                                        const current = [
+                                          ...(activeBlock.content.navLinks || [
+                                            { label: 'Overview', href: '#hero' },
+                                            { label: 'Specs', href: '#spotlight' },
+                                            { label: 'Reviews', href: '#reviews' },
+                                            { label: 'FAQ', href: '#faq' },
+                                          ]),
+                                        ];
+                                        current.splice(li, 1);
+                                        updateActiveContent('navLinks', current);
+                                      }}
+                                      className="h-7 w-7 p-0 text-slate-400 hover:text-red-500"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  <Input
+                                    value={link.href || ''}
+                                    onChange={(e) => {
+                                      const current = [
+                                        ...(activeBlock.content.navLinks || [
+                                          { label: 'Overview', href: '#hero' },
+                                          { label: 'Specs', href: '#spotlight' },
+                                          { label: 'Reviews', href: '#reviews' },
+                                          { label: 'FAQ', href: '#faq' },
+                                        ]),
+                                      ];
+                                      current[li] = { ...current[li], href: e.target.value };
+                                      updateActiveContent('navLinks', current);
+                                    }}
+                                    placeholder="Href (e.g. #hero)"
+                                    className="h-6 text-[11px] font-mono"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </>
                       )}
 
@@ -2741,10 +3416,11 @@ export default function PlatformDashboard() {
                       {activeBlock.type === 'IMAGE' && (
                         <>
                           <div>
-                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Image URL</label>
-                            <Input
+                            <ImageSourcePicker
+                              label="Image Source"
                               value={activeBlock.content.imageUrl || ''}
-                              onChange={(e) => updateActiveContent('imageUrl', e.target.value)}
+                              onChange={(val) => updateActiveContent('imageUrl', val)}
+                              placeholder="Image URL or upload from device..."
                             />
                           </div>
                           <div>
@@ -2793,6 +3469,14 @@ export default function PlatformDashboard() {
                 </aside>
               ) : (
                 <aside className="w-80 border-l border-slate-200 dark:border-neutral-900 bg-white dark:bg-[#08090c] p-6 flex flex-col items-center justify-center text-center h-full sticky top-0 shrink-0 z-30 lg:flex select-none">
+                  <button
+                    type="button"
+                    onClick={() => setShowRightSidebar(false)}
+                    className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                    title="Hide Inspector Sidebar"
+                  >
+                    <PanelRightClose className="w-3.5 h-3.5" />
+                  </button>
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex items-center justify-center mb-3 text-slate-400 dark:text-neutral-500 shadow-inner">
                     <Sliders className="w-6 h-6" />
                   </div>

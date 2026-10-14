@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Check, Star, ExternalLink, Plus, Minus } from 'lucide-react';
 import { BlockItem } from '../../builder/ElementorSidebar';
+import { DynamicIcon } from '../../builder/IconPicker';
 
 export interface AlexSectionProps {
   block: BlockItem;
@@ -66,6 +67,31 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
   const content = block.content || {};
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const navLinks = content.navLinks || [
+    { label: 'About', href: '#about' },
+    { label: 'Project', href: '#projects' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'Store', href: '#store' },
+  ];
+
+  const pagesLinks = content.pagesLinks || [
+    { label: 'Services', href: '#services' },
+    { label: 'Reviews', href: '#testimonials' },
+    { label: 'FAQ', href: '#faq' },
+  ];
+
+  const updateNavLink = (index: number, key: 'label' | 'href', val: string) => {
+    const updated = [...navLinks];
+    updated[index] = { ...updated[index], [key]: val };
+    onUpdateContent?.('navLinks', updated);
+  };
+
+  const updatePagesLink = (index: number, key: 'label' | 'href', val: string) => {
+    const updated = [...pagesLinks];
+    updated[index] = { ...updated[index], [key]: val };
+    onUpdateContent?.('pagesLinks', updated);
+  };
+
   return (
     <header
       onClick={onSelect}
@@ -91,38 +117,89 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
           </span>
         </div>
 
-        {/* Links: About, Project, Pricing, Store, Pages dropdown */}
+        {/* Links: Dynamic list from navLinks */}
         <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-[#555] dark:text-neutral-400">
-          <a href="#about" className="hover:text-[#111] dark:hover:text-white transition-colors">About</a>
-          <a href="#projects" className="hover:text-[#111] dark:hover:text-white transition-colors">Project</a>
-          <a href="#pricing" className="hover:text-[#111] dark:hover:text-white transition-colors">Pricing</a>
-          <a href="#store" className="hover:text-[#111] dark:hover:text-white transition-colors">Store</a>
-          <div className="relative">
-            <button
-              type="button"
+          {navLinks.map((link: any, i: number) => (
+            <a
+              key={i}
+              href={link.href || '#'}
               onClick={(e) => {
-                e.stopPropagation();
-                setDropdownOpen(!dropdownOpen);
+                if (!isPreviewMode) e.preventDefault();
               }}
-              className="flex items-center gap-1 hover:text-[#111] dark:hover:text-white transition-colors"
+              className="hover:text-[#111] dark:hover:text-white transition-colors"
             >
-              Pages ▾
-            </button>
-            {dropdownOpen && (
-              <div className="absolute top-full mt-2 left-0 w-36 bg-white dark:bg-[#161616] border border-[#ececec] dark:border-neutral-800 rounded-lg shadow-lg p-2 flex flex-col gap-1 text-xs">
-                <a href="#services" className="p-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded">Services</a>
-                <a href="#testimonials" className="p-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded">Reviews</a>
-                <a href="#faq" className="p-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded">FAQ</a>
-              </div>
-            )}
-          </div>
+              <InlineText
+                value={link.label}
+                onSave={(v) => updateNavLink(i, 'label', v)}
+                disabled={isPreviewMode}
+              />
+            </a>
+          ))}
+
+          {content.showPagesDropdown !== false && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDropdownOpen(!dropdownOpen);
+                }}
+                className="flex items-center gap-1 hover:text-[#111] dark:hover:text-white transition-colors"
+              >
+                <span>
+                  <InlineText
+                    value={content.dropdownLabel || 'Pages'}
+                    onSave={(v) => onUpdateContent?.('dropdownLabel', v)}
+                    disabled={isPreviewMode}
+                  />
+                </span> ▾
+              </button>
+              {dropdownOpen && (
+                <div className="absolute top-full mt-2 left-0 w-36 bg-white dark:bg-[#161616] border border-[#ececec] dark:border-neutral-800 rounded-lg shadow-lg p-2 flex flex-col gap-1 text-xs z-50">
+                  {pagesLinks.map((pLink: any, pi: number) => (
+                    <a
+                      key={pi}
+                      href={pLink.href || '#'}
+                      onClick={(e) => {
+                        if (!isPreviewMode) e.preventDefault();
+                      }}
+                      className="p-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800 rounded block text-left"
+                    >
+                      <InlineText
+                        value={pLink.label}
+                        onSave={(v) => updatePagesLink(pi, 'label', v)}
+                        disabled={isPreviewMode}
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
-        {/* Cart Icon + Dark Hire Me! button */}
+        {/* Action / Cart Icon + Dark Hire Me! button */}
         <div className="flex items-center gap-4">
-          <button type="button" className="relative p-1 text-[#111] dark:text-white" title="Cart">
-            🛒 <span className="absolute -top-1 -right-1 text-[9px] bg-[#111] text-white px-1 rounded-full">0</span>
-          </button>
+          {content.showActionIcon !== false && (
+            <button
+              type="button"
+              className="relative p-1.5 rounded-lg text-[#111] dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center"
+              title="Action / Cart"
+            >
+              <DynamicIcon
+                name={content.actionIcon || 'ShoppingCart'}
+                className="w-4 h-4"
+                fallback={<span>{content.actionIcon || '🛒'}</span>}
+              />
+              <span className="absolute -top-1 -right-1 text-[9px] bg-[#111] dark:bg-white text-white dark:text-[#111] px-1 rounded-full font-mono">
+                <InlineText
+                  value={content.cartBadgeCount ?? '0'}
+                  onSave={(v) => onUpdateContent?.('cartBadgeCount', v)}
+                  disabled={isPreviewMode}
+                />
+              </span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -566,6 +643,19 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
     onUpdateContent?.('services', updated);
   };
 
+  const cardFeatures: string[] = content.cardFeatures || [
+    'User Flow Mapping',
+    'Interactive Prototyping',
+    'Cross-platform UI',
+    'Token-based Handoff',
+  ];
+
+  const updateCardFeature = (index: number, val: string) => {
+    const updated = [...cardFeatures];
+    updated[index] = val;
+    onUpdateContent?.('cardFeatures', updated);
+  };
+
   return (
     <section
       onClick={onSelect}
@@ -674,10 +764,20 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
               </p>
 
               <div className="grid grid-cols-2 gap-3 mb-6 text-xs text-[#111] dark:text-neutral-300">
-                <div className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" /> User Flow Mapping</div>
-                <div className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" /> Interactive Prototyping</div>
-                <div className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" /> Cross-platform UI</div>
-                <div className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-500" /> Token-based Handoff</div>
+                {cardFeatures.map((feat: string, i: number) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <DynamicIcon
+                      name={content.cardFeatureIcon || 'Check'}
+                      className="w-3.5 h-3.5 text-emerald-500 shrink-0"
+                      fallback={<Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                    />
+                    <InlineText
+                      value={feat}
+                      onSave={(v) => updateCardFeature(i, v)}
+                      disabled={isPreviewMode}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 

@@ -14,11 +14,11 @@ import {
   AlignCenter,
   AlignRight,
   Sun,
-  Sparkles,
   Layers,
   X,
 } from 'lucide-react';
 import { Input } from '../ui/input';
+import { ImageSourcePicker } from './ImageSourcePicker';
 
 interface StylesPanelProps {
   styles?: ElementStyles | BlockStyles;
@@ -120,29 +120,14 @@ export function StylesPanel({
           </div>
         </div>
 
-        {/* Background Image URL */}
+        {/* Background Image (URL or Device Upload) */}
         <div className="pt-2 border-t border-slate-200 dark:border-neutral-900">
-          <label className="block text-[11px] font-medium text-slate-600 dark:text-neutral-400 mb-1">
-            Background Image URL
-          </label>
-          <div className="flex items-center gap-1.5">
-            <Input
-              value={s.backgroundImage ?? ''}
-              placeholder="https://images.unsplash.com/..."
-              onChange={(e) => onChange('backgroundImage', e.target.value)}
-              className="font-mono text-xs flex-1 h-8"
-            />
-            {s.backgroundImage && (
-              <button
-                type="button"
-                onClick={() => onChange('backgroundImage', '')}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                title="Remove image"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          <ImageSourcePicker
+            label="Background Image"
+            value={s.backgroundImage ?? ''}
+            onChange={(val) => onChange('backgroundImage', val)}
+            placeholder="Enter image URL or choose file from device..."
+          />
 
           {/* Quick preset background images */}
           <div className="flex items-center gap-1.5 mt-1.5">
@@ -548,7 +533,7 @@ export function StylesPanel({
       {/* ======================================================== */}
       <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-neutral-900">
         <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-neutral-200">
-          <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+          <Sun className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />
           <span>Effects &amp; Elevation</span>
         </div>
 
