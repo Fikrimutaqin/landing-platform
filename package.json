@@ -1,5 +1,10 @@
 {
   "name": "landing-platform",
   "private": true,
-  "description": "Component-based landing page platform with BYOK Xendit payments and dual-layer tracking"
+  "description": "Component-based landing page platform with BYOK Xendit payments and dual-layer tracking",
+  "scripts": {
+    "lint": "npm run lint --prefix landing-platform-web",
+    "typecheck": "npx tsc --noEmit --project landing-platform-web/tsconfig.json",
+    "pre-commit": "bash .git/hooks/pre-commit"
+  }
 }

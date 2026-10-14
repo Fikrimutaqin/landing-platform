@@ -68,7 +68,7 @@ export function ReviewsBlock({ styles }: ReviewsBlockProps) {
                 ))}
               </div>
               <p className="text-xs opacity-85 leading-relaxed">
-                "{item.feedback}"
+                &ldquo;{item.feedback}&rdquo;
               </p>
             </div>
 

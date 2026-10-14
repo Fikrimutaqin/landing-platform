@@ -85,6 +85,8 @@ import {
   PlusCircle,
 } from 'lucide-react';
 
+const createUniqueId = (prefix: string) => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
 export default function PlatformDashboard() {
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<'builder' | 'settings' | 'orders'>('builder');
@@ -205,7 +207,7 @@ export default function PlatformDashboard() {
       gap: 'md',
     };
     let columnsContent: any[] = [];
-    let defaultStyles: BlockStyles = {
+    const defaultStyles: BlockStyles = {
       fontFamily: 'sans',
       backgroundColor: '#0a0b0f',
       textColor: '#ffffff',
@@ -700,7 +702,7 @@ export default function PlatformDashboard() {
 
   const addChildComponentToParent = (parentId: string, childType: ShadcnComponentType, defaultProps: Record<string, any>) => {
     const newChild: ShadcnComponentInstance = {
-      id: `comp_${childType.toLowerCase()}_${Date.now()}`,
+      id: createUniqueId(`comp_${childType.toLowerCase()}`),
       type: childType,
       props: defaultProps,
     };
