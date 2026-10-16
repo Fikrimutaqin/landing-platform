@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShadcnComponentInstance, ShadcnComponentType } from '../../../../shared/types';
+import {
+  ShadcnComponentInstance,
+  ShadcnComponentType,
+  StyleClass,
+  DesignTokens,
+} from '../../../../shared/types';
+import { resolveEffectiveStyles } from '@/lib/style-cascade';
 import {
   Check,
   ChevronDown,
@@ -56,6 +62,9 @@ export interface ShadcnRendererProps {
   isSelected?: boolean;
   selectedComponentId?: string | null;
   isPreviewMode?: boolean;
+  viewport?: 'desktop' | 'tablet' | 'mobile';
+  styleClasses?: StyleClass[];
+  tokens?: DesignTokens;
   onSelect?: () => void;
   onSelectChild?: (childId: string) => void;
   onUpdateProps?: (updatedProps: Record<string, any>) => void;
@@ -71,6 +80,9 @@ export function ShadcnRenderer({
   isSelected,
   selectedComponentId,
   isPreviewMode = false,
+  viewport,
+  styleClasses = [],
+  tokens,
   onSelect,
   onSelectChild,
   onUpdateProps,
@@ -146,7 +158,14 @@ export function ShadcnRenderer({
     );
   };
 
-  const elementStyles = (component.styles || {}) as Record<string, any>;
+  const rawStyles = component.styles || {};
+  const elementStyles = resolveEffectiveStyles({
+    elementStyles: component.styles,
+    classNames: component.classNames,
+    styleClasses,
+    tokens,
+    viewport,
+  });
 
   const radiusMap: Record<string, string> = {
     none: 'rounded-none',
@@ -157,7 +176,13 @@ export function ShadcnRenderer({
     '2xl': 'rounded-2xl',
     full: 'rounded-full',
   };
-  const radiusClass = (elementStyles.borderRadius && radiusMap[elementStyles.borderRadius]) || '';
+  const radiusClass = viewport
+    ? ((elementStyles.borderRadius && radiusMap[elementStyles.borderRadius]) || '')
+    : [
+        rawStyles.mobile?.borderRadius ? radiusMap[rawStyles.mobile.borderRadius] : (rawStyles.borderRadius && radiusMap[rawStyles.borderRadius]),
+        rawStyles.tablet?.borderRadius && `md:${radiusMap[rawStyles.tablet.borderRadius]}`,
+        rawStyles.borderRadius && `lg:${radiusMap[rawStyles.borderRadius]}`,
+      ].filter(Boolean).join(' ');
 
   const paddingMap: Record<string, string> = {
     none: 'p-0',
@@ -168,7 +193,13 @@ export function ShadcnRenderer({
     xl: 'p-7',
     '2xl': 'p-9',
   };
-  const paddingClass = (elementStyles.padding && paddingMap[elementStyles.padding]) || '';
+  const paddingClass = viewport
+    ? ((elementStyles.padding && paddingMap[elementStyles.padding]) || '')
+    : [
+        rawStyles.mobile?.padding ? paddingMap[rawStyles.mobile.padding] : (rawStyles.padding && paddingMap[rawStyles.padding]),
+        rawStyles.tablet?.padding && `md:${paddingMap[rawStyles.tablet.padding]}`,
+        rawStyles.padding && `lg:${paddingMap[rawStyles.padding]}`,
+      ].filter(Boolean).join(' ');
 
   const marginMap: Record<string, string> = {
     none: 'm-0',
@@ -178,7 +209,13 @@ export function ShadcnRenderer({
     lg: 'my-4',
     xl: 'my-6',
   };
-  const marginClass = (elementStyles.margin && marginMap[elementStyles.margin]) || '';
+  const marginClass = viewport
+    ? ((elementStyles.margin && marginMap[elementStyles.margin]) || '')
+    : [
+        rawStyles.mobile?.margin ? marginMap[rawStyles.mobile.margin] : (rawStyles.margin && marginMap[rawStyles.margin]),
+        rawStyles.tablet?.margin && `md:${marginMap[rawStyles.tablet.margin]}`,
+        rawStyles.margin && `lg:${marginMap[rawStyles.margin]}`,
+      ].filter(Boolean).join(' ');
 
   const shadowMap: Record<string, string> = {
     none: 'shadow-none',
@@ -195,7 +232,13 @@ export function ShadcnRenderer({
     center: 'text-center',
     right: 'text-right',
   };
-  const textAlignClass = (elementStyles.textAlign && textAlignMap[elementStyles.textAlign]) || '';
+  const textAlignClass = viewport
+    ? ((elementStyles.textAlign && textAlignMap[elementStyles.textAlign]) || '')
+    : [
+        rawStyles.mobile?.textAlign ? textAlignMap[rawStyles.mobile.textAlign] : (rawStyles.textAlign && textAlignMap[rawStyles.textAlign]),
+        rawStyles.tablet?.textAlign && `md:${textAlignMap[rawStyles.tablet.textAlign]}`,
+        rawStyles.textAlign && `lg:${textAlignMap[rawStyles.textAlign]}`,
+      ].filter(Boolean).join(' ');
 
   const fontSizeMap: Record<string, string> = {
     xs: 'text-xs',
@@ -206,7 +249,13 @@ export function ShadcnRenderer({
     '2xl': 'text-2xl',
     '3xl': 'text-3xl',
   };
-  const fontSizeClass = (elementStyles.fontSize && fontSizeMap[elementStyles.fontSize]) || '';
+  const fontSizeClass = viewport
+    ? ((elementStyles.fontSize && fontSizeMap[elementStyles.fontSize]) || '')
+    : [
+        rawStyles.mobile?.fontSize ? fontSizeMap[rawStyles.mobile.fontSize] : (rawStyles.fontSize && fontSizeMap[rawStyles.fontSize]),
+        rawStyles.tablet?.fontSize && `md:${fontSizeMap[rawStyles.tablet.fontSize]}`,
+        rawStyles.fontSize && `lg:${fontSizeMap[rawStyles.fontSize]}`,
+      ].filter(Boolean).join(' ');
 
   const fontWeightMap: Record<string, string> = {
     normal: 'font-normal',
@@ -362,21 +411,6 @@ export function ShadcnRenderer({
                 }`}
             >
               {props.required ? "Required *" : "Optional"}
-            </button>
-          )}
-
-          {/* Delete Element Button */}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="ml-1 p-0.5 rounded text-neutral-400 hover:text-red-400 hover:bg-red-950/40"
-              title="Delete element"
-            >
-              <Trash2 className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -1395,6 +1429,9 @@ export function ShadcnRenderer({
                         isSelected={isChildSelected}
                         selectedComponentId={selectedComponentId}
                         isPreviewMode={isPreviewMode}
+                        viewport={viewport}
+                        styleClasses={styleClasses}
+                        tokens={tokens}
                         onSelect={() => onSelectChild && onSelectChild(child.id)}
                         onSelectChild={onSelectChild}
                         onUpdateProps={(newProps) =>

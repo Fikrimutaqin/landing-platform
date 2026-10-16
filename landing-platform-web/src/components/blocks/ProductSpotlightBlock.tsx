@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { Check } from 'lucide-react';
-import { BlockStyles } from '../../../../shared/types';
+import { BlockStyles, ContainerLayout } from '../../../../shared/types';
 
 export interface ProductSpotlightProps {
   title: string;
@@ -11,6 +11,8 @@ export interface ProductSpotlightProps {
   inventoryBadgeText?: string;
   features: string[];
   styles?: BlockStyles;
+  layout?: ContainerLayout;
+  viewport?: 'desktop' | 'tablet' | 'mobile';
 }
 
 export function ProductSpotlightBlock({
@@ -26,24 +28,144 @@ export function ProductSpotlightBlock({
     '1-Click Export: Standalone Zero-Dependency HTML/CSS/JS Package',
   ],
   styles,
+  layout,
+  viewport,
 }: ProductSpotlightProps) {
+  const isTablet = viewport === 'tablet';
+  const isMobile = viewport === 'mobile';
+
+  const activeReverse = (isMobile ? layout?.mobile?.reverse : isTablet ? layout?.tablet?.reverse : undefined) ?? layout?.reverse;
+  const activeGap = (isMobile ? layout?.mobile?.gap : isTablet ? layout?.tablet?.gap : undefined) ?? layout?.gap;
+  const activeMaxWidth = (isMobile ? layout?.mobile?.maxWidth : isTablet ? layout?.tablet?.maxWidth : undefined) ?? layout?.maxWidth;
+  const activeContentPos = (isMobile ? layout?.mobile?.contentPosition : isTablet ? layout?.tablet?.contentPosition : undefined) ?? layout?.contentPosition;
+
+  const gapClass = {
+    none: 'gap-0',
+    sm: 'gap-3',
+    md: 'gap-8',
+    lg: 'gap-12',
+    xl: 'gap-16',
+    '2xl': 'gap-20',
+  }[activeGap || 'md'];
+
+  const maxWidthClass = {
+    narrow: 'max-w-3xl',
+    compact: 'max-w-5xl',
+    boxed: 'max-w-7xl',
+    full: 'w-full',
+  }[activeMaxWidth || 'boxed'];
+
+  const contentPosClass = {
+    left: 'mr-auto',
+    center: 'mx-auto',
+    right: 'ml-auto',
+  }[activeContentPos || 'center'];
+
   const savings = compareAtPrice ? compareAtPrice - price : 0;
-  const fontClass = {
+  const rawStyles = (styles || {}) as Record<string, any>;
+  const activeOverrides = isMobile
+    ? { ...(rawStyles.tablet || {}), ...(rawStyles.mobile || {}) }
+    : isTablet
+    ? { ...(rawStyles.tablet || {}) }
+    : {};
+  const s = { ...rawStyles, ...activeOverrides };
+
+  const paddingMap: Record<string, string> = {
+    none: 'p-0',
+    xs: 'py-2 px-3 sm:px-4',
+    sm: 'py-4 sm:py-6 px-4 sm:px-6',
+    md: 'p-6 sm:p-10',
+    lg: 'p-8 sm:p-14',
+    xl: 'p-12 sm:p-20',
+    '2xl': 'p-16 sm:p-28',
+  };
+  const paddingClass = s.padding ? paddingMap[s.padding] : 'p-6 sm:p-10';
+
+  const marginMap: Record<string, string> = {
+    none: 'my-0',
+    xs: 'my-1',
+    sm: 'my-2 sm:my-3',
+    md: 'my-4 sm:my-6',
+    lg: 'my-8 sm:my-10',
+    xl: 'my-12 sm:my-16',
+    '2xl': 'my-16 sm:my-20',
+  };
+  const marginClass = s.margin ? marginMap[s.margin] : '';
+
+  const radiusMap: Record<string, string> = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    xl: 'rounded-xl',
+    '2xl': 'rounded-2xl',
+    full: 'rounded-3xl',
+  };
+  const radiusClass = s.borderRadius ? radiusMap[s.borderRadius] : 'rounded-2xl';
+
+  const shadowMap: Record<string, string> = {
+    none: 'shadow-none',
+    sm: 'shadow-sm',
+    md: 'shadow-md',
+    lg: 'shadow-lg',
+    xl: 'shadow-xl',
+    '2xl': 'shadow-2xl',
+  };
+  const shadowClass = s.shadow ? shadowMap[s.shadow] : 'shadow-[0_1px_3px_0_rgba(0,0,0,0.5)]';
+
+  const fontMap: Record<string, string> = {
     sans: 'font-sans',
     serif: 'font-serif',
     mono: 'font-mono',
     space: 'font-mono tracking-tight',
     jakarta: 'font-sans',
-  }[styles?.fontFamily || 'sans'];
+  };
+  const fontClass = fontMap[s.fontFamily || 'sans'] || 'font-sans';
 
-  const hasBgImage = Boolean(styles?.backgroundImage);
+  const headlineSizeMap: Record<string, string> = {
+    sm: 'text-xl sm:text-2xl',
+    md: 'text-2xl sm:text-3xl',
+    lg: 'text-3xl sm:text-4xl',
+    xl: 'text-4xl sm:text-5xl',
+    '2xl': 'text-5xl sm:text-6xl',
+    '3xl': 'text-6xl sm:text-7xl',
+    '4xl': 'text-7xl sm:text-8xl',
+  };
+  const headlineSizeClass = s.headlineFontSize ? headlineSizeMap[s.headlineFontSize] : 'text-2xl sm:text-3xl';
+
+  const fontSizeMap: Record<string, string> = {
+    xs: 'text-xs',
+    sm: 'text-sm',
+    base: 'text-base',
+    lg: 'text-lg',
+    xl: 'text-xl',
+    '2xl': 'text-2xl',
+    '3xl': 'text-3xl',
+  };
+  const fontSizeClass = s.fontSize ? fontSizeMap[s.fontSize] : 'text-sm';
+
+  const hasBgImage = Boolean(s.backgroundImage);
 
   return (
     <section
-      className={`relative overflow-hidden rounded-2xl border border-neutral-800/80 p-6 sm:p-10 shadow-[0_1px_3px_0_rgba(0,0,0,0.5)] ${fontClass}`}
+      className={`relative overflow-hidden ${radiusClass} ${s.borderWidth === undefined ? 'border border-neutral-800/80' : ''} ${paddingClass} ${marginClass} ${shadowClass} ${fontClass}`}
       style={{
-        backgroundColor: styles?.backgroundColor || '#0a0b0f',
-        color: styles?.textColor || '#ffffff',
+        backgroundColor: s.backgroundColor || '#0a0b0f',
+        color: s.textColor || '#ffffff',
+        ...(s.borderWidth !== undefined
+          ? {
+              borderWidth: `${s.borderWidth}px`,
+              borderStyle: s.borderStyle || 'solid',
+              borderColor: s.borderColor || 'rgba(150, 150, 150, 0.3)',
+            }
+          : s.borderColor
+          ? {
+              borderWidth: '1px',
+              borderStyle: s.borderStyle || 'solid',
+              borderColor: s.borderColor,
+            }
+          : {}),
+        ...(s.opacity !== undefined ? { opacity: s.opacity / 100 } : {}),
       }}
     >
       {hasBgImage && (
@@ -59,9 +181,9 @@ export function ProductSpotlightBlock({
         </>
       )}
 
-      <div className="relative z-10 grid md:grid-cols-12 gap-8 items-start">
+      <div className={`relative z-10 ${maxWidthClass} ${contentPosClass} grid md:grid-cols-12 ${gapClass} items-start`}>
         {/* Left: Product Overview */}
-        <div className="md:col-span-7 space-y-5">
+        <div className={`md:col-span-7 space-y-5 ${activeReverse ? 'order-2' : 'order-1'}`}>
           {inventoryBadgeText && (
             <div className="flex items-center gap-2">
               <span
@@ -74,11 +196,11 @@ export function ProductSpotlightBlock({
             </div>
           )}
 
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          <h2 className={`${headlineSizeClass} font-bold tracking-tight`}>
             {title}
           </h2>
 
-          <p className="text-sm leading-relaxed opacity-85">
+          <p className={`${fontSizeClass} leading-relaxed opacity-85`}>
             {description}
           </p>
 
@@ -95,7 +217,7 @@ export function ProductSpotlightBlock({
         </div>
 
         {/* Right: Pricing Box */}
-        <div className="md:col-span-5 rounded-xl border border-neutral-800 bg-neutral-900/70 backdrop-blur-sm p-6 space-y-4">
+        <div className={`md:col-span-5 rounded-xl border border-neutral-800 bg-neutral-900/70 backdrop-blur-sm p-6 space-y-4 ${activeReverse ? 'order-1' : 'order-2'}`}>
           <div className="text-[11px] font-semibold uppercase tracking-wider opacity-70">
             Direct Merchant Offer
           </div>

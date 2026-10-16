@@ -90,9 +90,39 @@ export interface ElementStyles {
   shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   opacity?: number; // 0 to 100
   fontSize?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
+  headlineFontSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
   fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold';
   textAlign?: 'left' | 'center' | 'right';
+  fontFamily?: 'sans' | 'serif' | 'mono' | 'space' | 'jakarta';
   customClasses?: string;
+  tablet?: ResponsiveStyleOverrides;
+  mobile?: ResponsiveStyleOverrides;
+}
+
+export interface StyleClass {
+  id: string;
+  name: string; // e.g. "hero-headline", "primary-button", "feature-card"
+  description?: string;
+  styles: ElementStyles;
+}
+
+export interface DesignTokens {
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    muted: string;
+    border: string;
+    destructive: string;
+  };
+  fonts: {
+    heading: 'sans' | 'serif' | 'mono' | 'space' | 'jakarta';
+    body: 'sans' | 'serif' | 'mono' | 'space' | 'jakarta';
+  };
+  borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  shadow: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
 export interface ShadcnComponentInstance {
@@ -100,7 +130,11 @@ export interface ShadcnComponentInstance {
   type: ShadcnComponentType;
   props: Record<string, any>;
   styles?: ElementStyles;
+  classNames?: string[];
   children?: ShadcnComponentInstance[];
+  masterComponentId?: string;
+  isMasterInstance?: boolean;
+  overrides?: Record<string, { props?: Record<string, any>; styles?: Partial<ElementStyles> }>;
 }
 
 // -------------------------------------------------------------
@@ -139,16 +173,70 @@ export interface BlockStyles {
   borderRadius?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   opacity?: number; // 0 to 100
+  fontSize?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
+  headlineFontSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  textAlign?: 'left' | 'center' | 'right';
   customCssClass?: string;
+  classNames?: string[];
+  tablet?: ResponsiveStyleOverrides;
+  mobile?: ResponsiveStyleOverrides;
+}
+
+export type DeviceViewport = 'desktop' | 'tablet' | 'mobile';
+
+export interface ResponsiveLayoutOverrides {
+  display?: 'flex' | 'grid';
+  flexDirection?: 'row' | 'col';
+  reverse?: boolean;
+  wrap?: boolean;
+  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
+  align?: 'start' | 'center' | 'end' | 'stretch';
+  columns?: 1 | 2 | 3 | 4 | 6 | 12;
+  gap?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  rowGap?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  columnGap?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'narrow' | 'compact' | 'boxed' | 'full';
+  contentPosition?: 'left' | 'center' | 'right';
+}
+
+export interface ResponsiveStyleOverrides {
+  backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundOverlay?: number;
+  textColor?: string;
+  accentColor?: string;
+  padding?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  paddingY?: 'none' | 'compact' | 'normal' | 'spacious';
+  paddingX?: 'none' | 'compact' | 'normal' | 'spacious';
+  margin?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  borderWidth?: number;
+  borderColor?: string;
+  borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
+  borderRadius?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  opacity?: number;
+  textAlign?: 'left' | 'center' | 'right';
+  fontSize?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
+  headlineFontSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  fontFamily?: 'sans' | 'serif' | 'mono' | 'space' | 'jakarta';
 }
 
 export interface ContainerLayout {
   display: 'flex' | 'grid';
   flexDirection: 'row' | 'col';
-  justify: 'start' | 'center' | 'end' | 'between' | 'around';
+  reverse?: boolean;
+  wrap?: boolean;
+  justify: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
   align: 'start' | 'center' | 'end' | 'stretch';
-  columns: 1 | 2 | 3 | 4;
-  gap: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  columns: 1 | 2 | 3 | 4 | 6 | 12;
+  gap: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  rowGap?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  columnGap?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  templatePreset?: 'equal' | 'split-left' | 'split-right' | 'sidebar' | 'custom';
+  maxWidth?: 'narrow' | 'compact' | 'boxed' | 'full';
+  contentPosition?: 'left' | 'center' | 'right';
+  tablet?: ResponsiveLayoutOverrides;
+  mobile?: ResponsiveLayoutOverrides;
 }
 
 export interface BaseBlockProps {
@@ -157,6 +245,11 @@ export interface BaseBlockProps {
   order: number;
   isHidden?: boolean;
   styles?: BlockStyles;
+  classNames?: string[];
+  layout?: ContainerLayout;
+  masterComponentId?: string;
+  isMasterInstance?: boolean;
+  overrides?: Record<string, { props?: Record<string, any>; styles?: Partial<ElementStyles> }>;
 }
 
 export interface ContainerBlockProps extends BaseBlockProps {
@@ -376,4 +469,155 @@ export interface TrackingEventPayload {
     contentIds?: string[];
     numItems?: number;
   };
+}
+
+// -------------------------------------------------------------
+// 6. PERSISTENCE, PROJECTS & DOCUMENT MODEL (Milestone 4)
+// -------------------------------------------------------------
+
+export interface PageSeoMetadata {
+  metaTitle?: string;
+  metaDescription?: string;
+  favicon?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+  keywords?: string;
+}
+
+export interface PageDocument {
+  schemaVersion: number;
+  id: string;
+  projectId: string;
+  organizationId?: string;
+  title: string;
+  slug: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  blocks: any[]; // Supports BlockItem / PageBlock
+  tokens?: DesignTokens;
+  styleClasses?: StyleClass[];
+  seoMetadata?: PageSeoMetadata;
+  createdAt?: string;
+  updatedAt?: string;
+  publishedAt?: string;
+}
+
+export interface PageSummary {
+  id: string;
+  projectId: string;
+  title: string;
+  slug: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  isDefault?: boolean;
+  blockCount?: number;
+  updatedAt: string;
+}
+
+export interface ProjectSummary {
+  id: string;
+  organizationId: string;
+  name: string;
+  slug: string;
+  description?: string;
+  pagesCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePageDto {
+  projectId: string;
+  title: string;
+  slug: string;
+  templateKey?: string;
+}
+
+export interface UpdatePageDraftDto {
+  title?: string;
+  slug?: string;
+  blocks?: any[];
+  tokens?: DesignTokens;
+  styleClasses?: StyleClass[];
+  seoMetadata?: PageSeoMetadata;
+}
+
+export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+
+// -------------------------------------------------------------
+// 7. REUSABLE COMPONENTS & MASTER SYMBOLS (Milestone 5)
+// -------------------------------------------------------------
+
+export type MasterComponentCategory = 'navigation' | 'hero' | 'cards' | 'cta' | 'footer' | 'general';
+
+export interface MasterComponent {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  category: MasterComponentCategory;
+  schemaVersion: number;
+  rootType: 'block' | 'component';
+  blockData?: any; // Full BlockItem
+  componentData?: ShadcnComponentInstance;
+  thumbnail?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMasterComponentDto {
+  projectId: string;
+  name: string;
+  description?: string;
+  category?: MasterComponentCategory;
+  rootType: 'block' | 'component';
+  blockData?: any;
+  componentData?: ShadcnComponentInstance;
+}
+
+export interface UpdateMasterComponentDto {
+  name?: string;
+  description?: string;
+  category?: MasterComponentCategory;
+  blockData?: any;
+  componentData?: ShadcnComponentInstance;
+}
+
+// -------------------------------------------------------------
+// 8. PREVIEW, PUBLISHING & VERSIONING (Milestone 6)
+// -------------------------------------------------------------
+
+export interface PublishedPageVersion {
+  id: string; // e.g. ver_1729...
+  pageId: string;
+  versionNumber: number; // 1, 2, 3...
+  title: string;
+  slug: string;
+  blocks: any[];
+  tokens?: DesignTokens;
+  styleClasses?: StyleClass[];
+  seoMetadata?: PageSeoMetadata;
+  publishedBy?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface PublishPageDto {
+  notes?: string;
+  publishedBy?: string;
+}
+
+export interface RollbackPageDto {
+  versionId: string;
+}
+
+export interface PublicPageResponse {
+  id: string;
+  projectId: string;
+  title: string;
+  slug: string;
+  status: 'PUBLISHED';
+  blocks: any[];
+  tokens?: DesignTokens;
+  styleClasses?: StyleClass[];
+  seoMetadata?: PageSeoMetadata;
+  versionNumber: number;
+  publishedAt: string;
 }

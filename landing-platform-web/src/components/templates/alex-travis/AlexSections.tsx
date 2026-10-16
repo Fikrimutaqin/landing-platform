@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ArrowRight, Check, Star, ExternalLink, Plus, Minus } from 'lucide-react';
+import { ArrowRight, Check, Camera, Link as LinkIcon } from 'lucide-react';
 import { BlockItem } from '../../builder/ElementorSidebar';
 import { DynamicIcon } from '../../builder/IconPicker';
+import { ContainerLayout, BlockStyles } from '../../../../../shared/types';
+import { useState, useRef } from 'react';
 
 export interface AlexSectionProps {
   block: BlockItem;
@@ -11,9 +12,302 @@ export interface AlexSectionProps {
   onUpdateContent?: (key: string, value: any) => void;
   onSelect?: () => void;
   isSelected?: boolean;
+  viewport?: 'desktop' | 'tablet' | 'mobile';
 }
 
-// Robust inline editable text helper
+// Helper to resolve responsive spacing (padding & margin), borders, shadows, and background styles per section
+export function resolveSectionStyles(
+  styles?: BlockStyles,
+  viewport?: 'desktop' | 'tablet' | 'mobile',
+  defaultPaddingClass: string = 'py-16 md:py-24 px-6 sm:px-10'
+) {
+  const isTablet = viewport === 'tablet';
+  const isMobile = viewport === 'mobile';
+  const rawStyles = (styles || {}) as Record<string, any>;
+  const activeOverrides = isMobile
+    ? { ...(rawStyles.tablet || {}), ...(rawStyles.mobile || {}) }
+    : isTablet
+    ? { ...(rawStyles.tablet || {}) }
+    : {};
+
+  const activeStyles: BlockStyles = {
+    ...rawStyles,
+    ...activeOverrides,
+  };
+
+  const paddingMap: Record<string, string> = {
+    none: 'p-0',
+    xs: 'py-2 px-3 sm:px-4',
+    sm: 'py-4 sm:py-6 px-4 sm:px-6',
+    md: 'py-8 sm:py-12 px-6 sm:px-8',
+    lg: 'py-12 sm:py-16 px-6 sm:px-10',
+    xl: 'py-16 sm:py-24 px-6 sm:px-12',
+    '2xl': 'py-20 sm:py-32 px-6 sm:px-16',
+  };
+
+  const marginMap: Record<string, string> = {
+    none: 'my-0',
+    xs: 'my-1',
+    sm: 'my-2 sm:my-3',
+    md: 'my-4 sm:my-6',
+    lg: 'my-8 sm:my-10',
+    xl: 'my-12 sm:my-16',
+    '2xl': 'my-16 sm:my-20',
+  };
+
+  const radiusMap: Record<string, string> = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    xl: 'rounded-xl',
+    '2xl': 'rounded-2xl',
+    full: 'rounded-3xl',
+  };
+
+  const shadowMap: Record<string, string> = {
+    none: 'shadow-none',
+    sm: 'shadow-sm dark:shadow-[0_2px_8px_rgba(0,0,0,0.5)]',
+    md: 'shadow-md dark:shadow-[0_4px_16px_rgba(0,0,0,0.65)]',
+    lg: 'shadow-lg dark:shadow-[0_10px_30px_rgba(0,0,0,0.8)]',
+    xl: 'shadow-xl dark:shadow-[0_20px_45px_rgba(0,0,0,0.9)]',
+    '2xl': 'shadow-2xl dark:shadow-[0_25px_65px_rgba(0,0,0,0.95)]',
+  };
+
+  const fontMap: Record<string, string> = {
+    sans: 'font-sans',
+    serif: 'font-serif',
+    mono: 'font-mono',
+    space: 'font-mono tracking-tight',
+    jakarta: 'font-sans',
+  };
+
+  let paddingClass = defaultPaddingClass;
+  if (activeStyles.padding && paddingMap[activeStyles.padding]) {
+    paddingClass = paddingMap[activeStyles.padding];
+  } else if (activeStyles.paddingY) {
+    const pyMap: Record<string, string> = {
+      none: 'py-0 px-6 sm:px-10',
+      compact: 'py-6 sm:py-8 px-6 sm:px-10',
+      normal: 'py-12 sm:py-16 px-6 sm:px-10',
+      spacious: 'py-16 sm:py-24 px-6 sm:px-10',
+    };
+    paddingClass = pyMap[activeStyles.paddingY] || defaultPaddingClass;
+  }
+
+  const marginClass = (activeStyles.margin && marginMap[activeStyles.margin]) || '';
+  const radiusClass = (activeStyles.borderRadius && radiusMap[activeStyles.borderRadius]) || '';
+  const shadowClass = (activeStyles.shadow && shadowMap[activeStyles.shadow]) || '';
+  const fontClass = fontMap[activeStyles.fontFamily || 'sans'] || 'font-sans';
+
+  const sectionStyle: React.CSSProperties = {
+    ...(activeStyles.backgroundColor ? { backgroundColor: activeStyles.backgroundColor } : {}),
+    ...(activeStyles.textColor ? { color: activeStyles.textColor } : {}),
+    ...(activeStyles.borderWidth !== undefined
+      ? {
+          borderWidth: `${activeStyles.borderWidth}px`,
+          borderStyle: activeStyles.borderStyle || 'solid',
+          borderColor: activeStyles.borderColor || 'rgba(150, 150, 150, 0.3)',
+        }
+      : activeStyles.borderColor
+      ? {
+          borderWidth: '1px',
+          borderStyle: activeStyles.borderStyle || 'solid',
+          borderColor: activeStyles.borderColor,
+        }
+      : {}),
+    ...(activeStyles.opacity !== undefined ? { opacity: activeStyles.opacity / 100 } : {}),
+  };
+
+  const headlineSizeMap: Record<string, string> = {
+    sm: 'text-xl sm:text-2xl',
+    md: 'text-2xl sm:text-3xl',
+    lg: 'text-3xl sm:text-4xl',
+    xl: 'text-4xl sm:text-5xl',
+    '2xl': 'text-5xl sm:text-6xl',
+    '3xl': 'text-6xl sm:text-7xl',
+    '4xl': 'text-7xl sm:text-8xl',
+  };
+
+  const fontSizeMap: Record<string, string> = {
+    xs: 'text-xs',
+    sm: 'text-sm',
+    base: 'text-base',
+    lg: 'text-lg',
+    xl: 'text-xl',
+    '2xl': 'text-2xl',
+    '3xl': 'text-3xl',
+  };
+
+  const textAlignMap: Record<string, string> = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right',
+  };
+
+  const headlineSizeClass = activeStyles.headlineFontSize ? headlineSizeMap[activeStyles.headlineFontSize] || '' : '';
+  const fontSizeClass = activeStyles.fontSize ? fontSizeMap[activeStyles.fontSize] || '' : '';
+  const textAlignClass = activeStyles.textAlign ? textAlignMap[activeStyles.textAlign] || '' : '';
+
+  return {
+    sectionStyle,
+    activeStyles,
+    sectionClasses: `${paddingClass} ${marginClass} ${radiusClass} ${shadowClass} ${fontClass} ${textAlignClass}`.trim(),
+    headlineSizeClass,
+    fontSizeClass,
+    textAlignClass,
+  };
+}
+
+// Helper to resolve responsive flex/grid layout and positioning per section
+export function resolveSectionLayout(
+  layout?: ContainerLayout,
+  viewport?: 'desktop' | 'tablet' | 'mobile',
+  defaults?: Partial<ContainerLayout> & {
+    defaultDisplay?: 'flex' | 'grid';
+    defaultFlexDirection?: 'row' | 'col';
+    defaultJustify?: ContainerLayout['justify'];
+    defaultAlign?: ContainerLayout['align'];
+    defaultColumns?: ContainerLayout['columns'];
+    defaultGap?: ContainerLayout['gap'];
+    defaultMaxWidth?: ContainerLayout['maxWidth'];
+    defaultContentPosition?: ContainerLayout['contentPosition'];
+  }
+) {
+  const isTablet = viewport === 'tablet';
+  const isMobile = viewport === 'mobile';
+
+  const base: ContainerLayout = {
+    display: defaults?.display ?? defaults?.defaultDisplay ?? 'flex',
+    flexDirection: defaults?.flexDirection ?? defaults?.defaultFlexDirection ?? 'row',
+    justify: defaults?.justify ?? defaults?.defaultJustify ?? 'between',
+    align: defaults?.align ?? defaults?.defaultAlign ?? 'center',
+    columns: defaults?.columns ?? defaults?.defaultColumns ?? 2,
+    gap: defaults?.gap ?? defaults?.defaultGap ?? 'md',
+    maxWidth: defaults?.maxWidth ?? defaults?.defaultMaxWidth ?? 'boxed',
+    contentPosition: defaults?.contentPosition ?? defaults?.defaultContentPosition ?? 'center',
+    ...(layout || {}),
+  };
+
+  const activeOverrides = isMobile
+    ? { ...(layout?.tablet || {}), ...(layout?.mobile || {}) }
+    : isTablet
+    ? { ...(layout?.tablet || {}) }
+    : {};
+
+  const active = {
+    ...base,
+    ...activeOverrides,
+  };
+
+  const isGrid = active.display === 'grid';
+
+  const gapMap: Record<string, string> = {
+    none: 'gap-0',
+    sm: 'gap-2',
+    md: 'gap-6',
+    lg: 'gap-10 sm:gap-12',
+    xl: 'gap-14 sm:gap-16',
+    '2xl': 'gap-20 sm:gap-24',
+  };
+
+  const justifyMap: Record<string, string> = {
+    start: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+    between: 'justify-between',
+    around: 'justify-around',
+    evenly: 'justify-evenly',
+  };
+
+  const alignMap: Record<string, string> = {
+    start: 'items-start',
+    center: 'items-center',
+    end: 'items-end',
+    stretch: 'items-stretch',
+  };
+
+  const gridColsMap: Record<number, string> = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-1 md:grid-cols-2',
+    3: 'grid-cols-1 md:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4',
+    6: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6',
+    12: 'grid-cols-1 lg:grid-cols-12',
+  };
+
+  const singleGridColsMap: Record<number, string> = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-2',
+    3: 'grid-cols-3',
+    4: 'grid-cols-4',
+    6: 'grid-cols-6',
+    12: 'grid-cols-12',
+  };
+
+  const activeGridColClass = viewport
+    ? (active.columns === 12
+        ? (isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-12')
+        : (singleGridColsMap[active.columns || 2] || 'grid-cols-2'))
+    : (gridColsMap[active.columns || 2] || 'grid-cols-1 md:grid-cols-2');
+
+  const flexDirClass = viewport
+    ? (active.flexDirection === 'col'
+        ? (active.reverse ? 'flex-col-reverse' : 'flex-col')
+        : (active.reverse ? 'flex-row-reverse' : 'flex-row'))
+    : `${active.flexDirection === 'col' ? (active.reverse ? 'flex-col-reverse' : 'flex-col') : (active.reverse ? 'flex-row-reverse' : 'flex-row')} md:${
+        layout?.tablet?.flexDirection === 'col' ? 'flex-col' : 'flex-row'
+      } lg:${layout?.flexDirection === 'col' ? 'flex-col' : 'flex-row'}`;
+
+  const maxWidthMap: Record<string, string> = {
+    narrow: 'max-w-3xl',
+    compact: 'max-w-5xl',
+    boxed: 'max-w-300',
+    full: 'w-full',
+  };
+
+  const contentPosMap: Record<string, string> = {
+    left: 'mr-auto',
+    center: 'mx-auto',
+    right: 'ml-auto',
+  };
+
+  const wrapperClass = `${maxWidthMap[active.maxWidth || 'boxed'] || 'max-w-300'} ${
+    contentPosMap[active.contentPosition || 'center'] || 'mx-auto'
+  } ${
+    isGrid
+      ? `grid ${activeGridColClass} ${gapMap[active.gap || 'md'] || 'gap-6'} ${
+          alignMap[active.align || 'center'] || 'items-center'
+        }`
+      : `flex ${flexDirClass} ${justifyMap[active.justify || 'between'] || 'justify-between'} ${
+          alignMap[active.align || 'center'] || 'items-center'
+        } ${gapMap[active.gap || 'md'] || 'gap-6'}`
+  }`;
+
+  const baseReverse = Boolean(layout?.reverse);
+  const tabletReverse = layout?.tablet?.reverse !== undefined ? Boolean(layout?.tablet?.reverse) : baseReverse;
+  const mobileReverse = layout?.mobile?.reverse !== undefined ? Boolean(layout?.mobile?.reverse) : tabletReverse;
+
+  const orderPrimary = viewport
+    ? (active.reverse ? 'order-2' : 'order-1')
+    : `${mobileReverse ? 'order-2' : 'order-1'} ${tabletReverse ? 'md:order-2' : 'md:order-1'} ${baseReverse ? 'lg:order-2' : 'lg:order-1'}`;
+
+  const orderSecondary = viewport
+    ? (active.reverse ? 'order-1' : 'order-2')
+    : `${mobileReverse ? 'order-1' : 'order-2'} ${tabletReverse ? 'md:order-1' : 'md:order-2'} ${baseReverse ? 'lg:order-1' : 'lg:order-2'}`;
+
+  return {
+    isGrid,
+    active,
+    wrapperClass,
+    maxWidthClass: maxWidthMap[active.maxWidth || 'boxed'] || 'max-w-300',
+    contentPosClass: contentPosMap[active.contentPosition || 'center'] || 'mx-auto',
+    orderPrimary,
+    orderSecondary,
+  };
+}
+
+// Robust inline editable text helper with hover indicator & instant click-to-edit
 function InlineText({
   value,
   onSave,
@@ -39,7 +333,6 @@ function InlineText({
     <Component
       contentEditable
       suppressContentEditableWarning
-      onClick={(e: React.MouseEvent) => e.stopPropagation()}
       onKeyDown={(e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && Component !== 'p' && Component !== 'textarea') {
           e.preventDefault();
@@ -52,7 +345,7 @@ function InlineText({
           onSave(text);
         }
       }}
-      className={`${className} outline-none focus:ring-2 focus:ring-blue-500/80 focus:bg-blue-50/30 dark:focus:bg-blue-900/30 rounded px-1 transition-all cursor-text`}
+      className={`${className} outline-none hover:ring-1 hover:ring-blue-400/60 hover:bg-blue-50/20 dark:hover:bg-blue-900/20 focus:ring-2 focus:ring-blue-500 focus:bg-blue-50/40 dark:focus:bg-blue-900/40 rounded-xs px-0.5 transition-all cursor-text`}
       title="Click to edit text directly"
     >
       {displayVal || placeholder}
@@ -60,12 +353,106 @@ function InlineText({
   );
 }
 
+// Inline editable image with instant 1-click file upload & URL replacement
+function EditableImage({
+  src,
+  alt = 'Image',
+  className = '',
+  imgClassName = 'w-full h-full object-cover',
+  onSave,
+  disabled = false,
+}: {
+  src: string;
+  alt?: string;
+  className?: string;
+  imgClassName?: string;
+  onSave?: (newUrl: string) => void;
+  disabled?: boolean;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result && onSave) {
+        onSave(result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePromptUrl = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newUrl = window.prompt('Enter Image URL (or upload from device):', src);
+    if (newUrl && newUrl.trim() && onSave) {
+      onSave(newUrl.trim());
+    }
+  };
+
+  if (disabled) {
+    return (
+      <div className={className}>
+        <img src={src} alt={alt} className={imgClassName} />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`relative group/editable-img ${className} hover:ring-2 hover:ring-blue-500/80 rounded-lg transition-all`}
+      title="Hover to replace or upload image"
+    >
+      <img src={src} alt={alt} className={imgClassName} />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
+      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/editable-img:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2 pointer-events-auto rounded-lg backdrop-blur-xs">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            fileInputRef.current?.click();
+          }}
+          className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold shadow-lg flex items-center gap-1.5 active:scale-95 transition-transform cursor-pointer"
+          title="Upload image from computer"
+        >
+          <Camera className="w-3.5 h-3.5" />
+          <span>Upload</span>
+        </button>
+        <button
+          type="button"
+          onClick={handlePromptUrl}
+          className="px-2.5 py-1.5 rounded-lg bg-white/95 hover:bg-white text-slate-800 text-[11px] font-medium shadow-lg flex items-center gap-1 active:scale-95 transition-transform cursor-pointer"
+          title="Paste image URL"
+        >
+          <LinkIcon className="w-3.5 h-3.5" />
+          <span>URL</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // -------------------------------------------------------------
 // 1. STICKY NAV
 // -------------------------------------------------------------
-export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    display: 'flex',
+    flexDirection: 'row',
+    justify: 'between',
+    align: 'center',
+    gap: 'none',
+  });
 
   const navLinks = content.navLinks || [
     { label: 'About', href: '#about' },
@@ -92,13 +479,18 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
     onUpdateContent?.('pagesLinks', updated);
   };
 
+  const navBtnBg = content.ctaBgColor || block.styles?.accentColor;
+  const navBtnColor = content.ctaTextColor || (navBtnBg ? '#ffffff' : undefined);
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-4 px-6 md:px-10');
+
   return (
     <header
       onClick={onSelect}
-      className={`sticky top-0 z-40 w-full py-4 px-6 md:px-10 bg-white/95 dark:bg-[#0c0d12]/95 backdrop-blur-md border-b border-[#ececec] dark:border-neutral-800 transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`sticky top-0 z-40 w-full ${stylesConfig.sectionClasses} backdrop-blur-md border-b border-[#ececec] dark:border-neutral-800 transition-all ${block.styles?.backgroundColor ? '' : 'bg-white/95 dark:bg-[#0c0d12]/95'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto flex items-center justify-between">
+      <div className={layoutConfig.wrapperClass}>
         {/* Logo mark */}
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#d9ff1a] text-[#111] font-bold flex items-center justify-center text-xs shadow-sm">
@@ -178,7 +570,7 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
           )}
         </nav>
 
-        {/* Action / Cart Icon + Dark Hire Me! button */}
+        {/* Action / Cart Icon + CTA button */}
         <div className="flex items-center gap-4">
           {content.showActionIcon !== false && (
             <button
@@ -203,7 +595,12 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
 
           <button
             type="button"
-            className="px-5 py-2.5 rounded-lg bg-[#161616] text-white font-medium text-xs hover:bg-[#111] transition-all shadow-sm"
+            style={{
+              ...(navBtnBg ? { backgroundColor: navBtnBg, backgroundImage: 'none' } : {}),
+              ...(navBtnColor ? { color: navBtnColor } : {}),
+            }}
+            className={`px-5 py-2.5 rounded-lg font-medium text-xs transition-all shadow-sm ${navBtnBg ? 'hover:opacity-90' : 'bg-[#161616] text-white hover:bg-[#111]'
+              }`}
           >
             <InlineText
               value={content.ctaText || 'Hire Me!'}
@@ -220,21 +617,44 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
 // -------------------------------------------------------------
 // 2. HERO SECTION
 // -------------------------------------------------------------
-export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
+  const primaryBg = content.primaryCtaBg || block.styles?.accentColor;
+  const primaryColor = content.primaryCtaColor || (primaryBg ? '#ffffff' : undefined);
+  const secondaryBg = content.secondaryCtaBg;
+  const secondaryColor = content.secondaryCtaColor;
+  const secondaryBorder = content.secondaryCtaBorder;
+
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    display: block.layout?.display || 'grid',
+    flexDirection: block.layout?.flexDirection || 'row',
+    columns: block.layout?.columns || 12,
+    gap: block.layout?.gap || 'lg',
+    align: block.layout?.align || 'center',
+  });
+
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-20 px-6 sm:px-10');
 
   return (
     <section
       onClick={onSelect}
-      className={`relative py-16 md:py-20 px-6 sm:px-10 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div className={layoutConfig.wrapperClass}>
         {/* Left Column */}
-        <div className="lg:col-span-7 space-y-6 text-left">
+        <div className={`${layoutConfig.isGrid && layoutConfig.active.columns === 12 ? 'lg:col-span-7' : 'w-full'} ${layoutConfig.orderPrimary} space-y-6 ${stylesConfig.textAlignClass || 'text-left'}`}>
           {/* Lime pill "Hi, Alex Travis Here" */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#d9ff1a] text-[#111] font-semibold text-xs tracking-tight shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#111]"></span>
+          <div
+            style={{
+              ...(content.badgeBg ? { backgroundColor: content.badgeBg, backgroundImage: 'none' } : {}),
+              ...(content.badgeColor ? { color: content.badgeColor } : {}),
+            }}
+            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-semibold text-xs tracking-tight shadow-xs ${content.badgeBg ? '' : 'bg-[#d9ff1a] text-[#111]'
+              }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-current"></span>
             <InlineText
               value={content.badgeText || 'Hi, Alex Travis Here'}
               onSave={(v) => onUpdateContent?.('badgeText', v)}
@@ -243,7 +663,7 @@ export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelec
           </div>
 
           {/* Two-Tone H1 */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-[-0.02em] leading-[1.08]">
+          <h1 className={`${stylesConfig.headlineSizeClass || 'text-4xl sm:text-5xl lg:text-6xl'} font-medium tracking-[-0.02em] leading-[1.08]`}>
             <span className="text-[#111] dark:text-white">
               <InlineText
                 value={content.headlineDark || 'A creative product designer'}
@@ -260,7 +680,7 @@ export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelec
             </span>
           </h1>
 
-          <p className="text-base text-[#555] dark:text-neutral-400 leading-relaxed max-w-xl font-normal">
+          <p className={`${stylesConfig.fontSizeClass || 'text-base'} text-[#555] dark:text-neutral-400 leading-relaxed max-w-xl font-normal`}>
             <InlineText
               value={
                 content.subheadline ||
@@ -272,11 +692,16 @@ export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelec
             />
           </p>
 
-          {/* Gradient "Hire Me!" + Outlined "See My Portfolio" buttons (8px radius) */}
+          {/* Gradient "Hire Me!" + Outlined "See My Portfolio" buttons */}
           <div className="pt-2 flex flex-wrap items-center gap-4">
             <button
               type="button"
-              className="px-7 py-3 rounded-lg font-semibold text-sm text-white shadow-md transition-transform active:scale-95 bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f] hover:opacity-95 flex items-center gap-2"
+              style={{
+                ...(primaryBg ? { backgroundColor: primaryBg, backgroundImage: 'none' } : {}),
+                ...(primaryColor ? { color: primaryColor } : {}),
+              }}
+              className={`px-7 py-3 rounded-lg font-semibold text-sm shadow-md transition-transform active:scale-95 hover:opacity-95 flex items-center gap-2 ${primaryBg ? 'text-white' : 'text-white bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f]'
+                }`}
             >
               <InlineText
                 value={content.primaryCta || 'Hire Me!'}
@@ -288,7 +713,13 @@ export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelec
 
             <button
               type="button"
-              className="px-7 py-3 rounded-lg font-medium text-sm text-[#111] dark:text-white border border-[#ececec] dark:border-neutral-700 hover:border-[#111] transition-all"
+              style={{
+                ...(secondaryBg ? { backgroundColor: secondaryBg, backgroundImage: 'none' } : {}),
+                ...(secondaryColor ? { color: secondaryColor } : {}),
+                ...(secondaryBorder ? { borderColor: secondaryBorder } : {}),
+              }}
+              className={`px-7 py-3 rounded-lg font-medium text-sm transition-all border ${secondaryBg ? '' : 'text-[#111] dark:text-white border-[#ececec] dark:border-neutral-700 hover:border-[#111]'
+                }`}
             >
               <InlineText
                 value={content.secondaryCta || 'See My Portfolio'}
@@ -300,7 +731,7 @@ export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelec
         </div>
 
         {/* Right Column: Portrait Card with Available for work + NY badges & floating testimonials */}
-        <div className="lg:col-span-5 flex justify-center relative">
+        <div className={`${layoutConfig.isGrid && layoutConfig.active.columns === 12 ? 'lg:col-span-5' : 'w-full'} ${layoutConfig.orderSecondary} flex justify-center relative`}>
           <div className="relative w-full max-w-sm rounded-xl bg-white dark:bg-[#161616] border border-[#ececec] dark:border-neutral-800 p-4 shadow-xl">
             {/* Top Right Available for Work lime pill */}
             <div className="absolute -top-3 -right-3 z-20 px-3 py-1 rounded-full bg-[#d9ff1a] text-[#111] font-bold text-[11px] shadow-sm flex items-center gap-1">
@@ -314,13 +745,16 @@ export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelec
 
             {/* Profile Image */}
             <div className="relative overflow-hidden rounded-lg bg-linear-to-b from-indigo-100 to-indigo-50 dark:from-neutral-800 dark:to-neutral-900 aspect-4/5 flex items-end justify-center">
-              <img
+              <EditableImage
                 src={
                   content.avatarUrl ||
                   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80'
                 }
                 alt="Alex Travis"
-                className="w-full h-full object-cover object-top"
+                className="w-full h-full"
+                imgClassName="w-full h-full object-cover object-top"
+                onSave={(newUrl) => onUpdateContent?.('avatarUrl', newUrl)}
+                disabled={isPreviewMode}
               />
             </div>
 
@@ -383,7 +817,7 @@ export function AlexHeroSection({ block, isPreviewMode, onUpdateContent, onSelec
 // -------------------------------------------------------------
 // 3. STATS ROW (4 columns, bordered: 90%, 200+, 2018, 80+)
 // -------------------------------------------------------------
-export function AlexStatsSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexStatsSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const stats = content.stats || [
     { value: '90%', label: 'Client Satisfaction' },
@@ -392,19 +826,29 @@ export function AlexStatsSection({ block, isPreviewMode, onUpdateContent, onSele
     { value: '80+', label: 'Global Clients' },
   ];
 
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 4,
+    defaultGap: 'md',
+    defaultMaxWidth: 'boxed',
+  });
+
   const updateStatItem = (index: number, key: 'value' | 'label', val: string) => {
     const newStats = [...stats];
     newStats[index] = { ...newStats[index], [key]: val };
     onUpdateContent?.('stats', newStats);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-10 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-10 px-6 sm:px-10 border-y border-[#ececec] dark:border-neutral-800 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} border-y border-[#ececec] dark:border-neutral-800 transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-x-0 md:divide-x divide-[#ececec] dark:divide-neutral-800">
+      <div className={`${layoutConfig.wrapperClass} text-center divide-x-0 md:divide-x divide-[#ececec] dark:divide-neutral-800`}>
         {stats.map((st: any, i: number) => (
           <div key={i} className="px-4 space-y-1">
             <div className="text-3xl sm:text-4xl lg:text-5xl font-medium text-[#111] dark:text-white tracking-[-0.02em]">
@@ -431,18 +875,31 @@ export function AlexStatsSection({ block, isPreviewMode, onUpdateContent, onSele
 // -------------------------------------------------------------
 // 4. ABOUT (Ring Graphic & Lime "About Me" button)
 // -------------------------------------------------------------
-export function AlexPerformanceSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexPerformanceSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
+  const ctaBg = content.ctaBgColor || block.styles?.accentColor;
+  const ctaColor = content.ctaTextColor || (ctaBg ? '#ffffff' : undefined);
+
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 12,
+    defaultGap: 'lg',
+    defaultAlign: 'center',
+    defaultMaxWidth: 'boxed',
+  });
+
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-24 px-6 sm:px-10');
 
   return (
     <section
       onClick={onSelect}
-      className={`py-16 md:py-24 px-6 sm:px-10 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div className={layoutConfig.wrapperClass}>
         {/* Left: Ring Graphic with lime ring and orange segment + Tools Performance */}
-        <div className="lg:col-span-5 flex justify-center">
+        <div className={`${layoutConfig.isGrid ? 'lg:col-span-5' : 'flex-1'} ${layoutConfig.orderPrimary} flex justify-center`}>
           <div className="relative w-64 h-64 flex items-center justify-center">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
               <circle cx="80" cy="80" r="64" stroke="#f1f1f1" strokeWidth="14" fill="transparent" />
@@ -497,9 +954,9 @@ export function AlexPerformanceSection({ block, isPreviewMode, onUpdateContent, 
           </div>
         </div>
 
-        {/* Right: Two-tone heading, paragraphs, and lime "About Me" button */}
-        <div className="lg:col-span-7 space-y-6 text-left">
-          <h2 className="text-3xl sm:text-4xl font-medium tracking-[-0.02em] leading-tight">
+        {/* Right: Two-tone heading, paragraphs, and CTA button */}
+        <div className={`${layoutConfig.isGrid ? 'lg:col-span-7' : 'flex-1'} ${layoutConfig.orderSecondary} space-y-6 ${stylesConfig.textAlignClass || 'text-left'}`}>
+          <h2 className={`${stylesConfig.headlineSizeClass || 'text-3xl sm:text-4xl'} font-medium tracking-[-0.02em] leading-tight`}>
             <span className="text-[#111] dark:text-white">
               <InlineText
                 value={content.headlineDark || 'Designing digital experiences'}
@@ -516,7 +973,7 @@ export function AlexPerformanceSection({ block, isPreviewMode, onUpdateContent, 
             </span>
           </h2>
 
-          <p className="text-sm sm:text-base text-[#555] dark:text-neutral-400 leading-relaxed font-normal">
+          <p className={`${stylesConfig.fontSizeClass || 'text-sm sm:text-base'} text-[#555] dark:text-neutral-400 leading-relaxed font-normal`}>
             <InlineText
               value={
                 content.desc1 ||
@@ -528,7 +985,7 @@ export function AlexPerformanceSection({ block, isPreviewMode, onUpdateContent, 
             />
           </p>
 
-          <p className="text-sm sm:text-base text-[#555] dark:text-neutral-400 leading-relaxed font-normal">
+          <p className={`${stylesConfig.fontSizeClass || 'text-sm sm:text-base'} text-[#555] dark:text-neutral-400 leading-relaxed font-normal`}>
             <InlineText
               value={
                 content.desc2 ||
@@ -542,7 +999,12 @@ export function AlexPerformanceSection({ block, isPreviewMode, onUpdateContent, 
 
           <button
             type="button"
-            className="px-6 py-2.5 rounded-lg font-semibold text-xs text-[#111] bg-[#d9ff1a] hover:opacity-90 transition-all shadow-xs"
+            style={{
+              ...(ctaBg ? { backgroundColor: ctaBg, backgroundImage: 'none' } : {}),
+              ...(ctaColor ? { color: ctaColor } : {}),
+            }}
+            className={`px-6 py-2.5 rounded-lg font-semibold text-xs transition-all shadow-xs ${ctaBg ? 'hover:opacity-90' : 'text-[#111] bg-[#d9ff1a] hover:opacity-90'
+              }`}
           >
             <InlineText
               value={content.ctaText || 'About Me'}
@@ -559,7 +1021,7 @@ export function AlexPerformanceSection({ block, isPreviewMode, onUpdateContent, 
 // -------------------------------------------------------------
 // 5. TOOLS ROW (3 bordered cells: Webflow 46%, Figma 32%, ChatGPT 22%)
 // -------------------------------------------------------------
-export function AlexTrustSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexTrustSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const tools = content.tools || [
     { name: 'Webflow', percentage: '46%' },
@@ -567,19 +1029,29 @@ export function AlexTrustSection({ block, isPreviewMode, onUpdateContent, onSele
     { name: 'ChatGPT', percentage: '22%' },
   ];
 
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 3,
+    defaultGap: 'md',
+    defaultMaxWidth: 'boxed',
+  });
+
   const updateTool = (index: number, key: 'name' | 'percentage', val: string) => {
     const updated = [...tools];
     updated[index] = { ...updated[index], [key]: val };
     onUpdateContent?.('tools', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-8 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-8 px-6 sm:px-10 border-y border-[#ececec] dark:border-neutral-800 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} border-y border-[#ececec] dark:border-neutral-800 transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0 md:divide-x divide-[#ececec] dark:divide-neutral-800">
+      <div className={`${layoutConfig.wrapperClass} md:divide-x divide-[#ececec] dark:divide-neutral-800`}>
         {tools.map((t: any, i: number) => {
           const numericWidth = parseInt(t.percentage, 10) || 30;
           return (
@@ -617,8 +1089,10 @@ export function AlexTrustSection({ block, isPreviewMode, onUpdateContent, onSele
 // -------------------------------------------------------------
 // 6. SERVICES (Heading + Left list 01.1/01.2/01.3 + Right Figma card)
 // -------------------------------------------------------------
-export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
+  const cardCtaBg = content.cardCtaBg || block.styles?.accentColor;
+  const cardCtaColor = content.cardCtaColor || (cardCtaBg ? '#ffffff' : undefined);
   const services = content.services || [
     {
       number: '01.1',
@@ -636,6 +1110,13 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
       desc: 'Clean semantic HTML, modern CSS architecture, Next.js / Webflow, and micro-interactions.',
     },
   ];
+
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 12,
+    defaultGap: 'lg',
+    defaultMaxWidth: 'boxed',
+  });
 
   const updateService = (index: number, key: string, val: string) => {
     const updated = [...services];
@@ -656,16 +1137,19 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
     onUpdateContent?.('cardFeatures', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-24 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-16 md:py-24 px-6 sm:px-10 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto space-y-12">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-end text-left">
+      <div className={`${layoutConfig.maxWidthClass} ${layoutConfig.contentPosClass} space-y-12`}>
+        <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 items-end ${stylesConfig.textAlignClass || 'text-left'}`}>
           <div className="md:col-span-8">
-            <h2 className="text-3xl sm:text-4xl font-medium tracking-[-0.02em]">
+            <h2 className={`${stylesConfig.headlineSizeClass || 'text-3xl sm:text-4xl'} font-medium tracking-[-0.02em]`}>
               <span className="text-[#111] dark:text-white">
                 <InlineText
                   value={content.headlineDark || 'Comprehensive'}
@@ -682,7 +1166,7 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
               </span>
             </h2>
           </div>
-          <div className="md:col-span-4 text-xs text-[#555] dark:text-neutral-400">
+          <div className={`md:col-span-4 ${stylesConfig.fontSizeClass || 'text-xs'} text-[#555] dark:text-neutral-400`}>
             <InlineText
               value={
                 content.intro ||
@@ -695,9 +1179,9 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className={layoutConfig.wrapperClass}>
           {/* Left list: 01.1 / 01.2 / 01.3 */}
-          <div className="lg:col-span-6 space-y-4 text-left">
+          <div className={`${layoutConfig.isGrid ? 'lg:col-span-6' : 'flex-1'} ${layoutConfig.orderPrimary} space-y-4 text-left`}>
             {services.map((srv: any, i: number) => (
               <div
                 key={i}
@@ -733,7 +1217,7 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
           </div>
 
           {/* Right card: UI/UX Design with lime Figma tag, 2-column feature list, gradient button */}
-          <div className="lg:col-span-6 p-8 rounded-xl border border-[#ececec] dark:border-neutral-800 bg-white dark:bg-[#161616] shadow-md flex flex-col justify-between text-left">
+          <div className={`${layoutConfig.isGrid ? 'lg:col-span-6' : 'flex-1'} ${layoutConfig.orderSecondary} p-8 rounded-xl border border-[#ececec] dark:border-neutral-800 bg-white dark:bg-[#161616] shadow-md flex flex-col justify-between text-left`}>
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xl font-medium text-[#111] dark:text-white">
@@ -783,7 +1267,12 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
 
             <button
               type="button"
-              className="w-full py-3 rounded-lg font-semibold text-xs text-white bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f] shadow-md hover:opacity-95"
+              style={{
+                ...(cardCtaBg ? { backgroundColor: cardCtaBg, backgroundImage: 'none' } : {}),
+                ...(cardCtaColor ? { color: cardCtaColor } : {}),
+              }}
+              className={`w-full py-3 rounded-lg font-semibold text-xs shadow-md transition-all ${cardCtaBg ? 'hover:opacity-95' : 'text-white bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f] hover:opacity-95'
+                }`}
             >
               <InlineText
                 value={content.cardCta || 'Start a Project'}
@@ -801,9 +1290,18 @@ export function AlexServicesSection({ block, isPreviewMode, onUpdateContent, onS
 // -------------------------------------------------------------
 // 7. TRUST BAR (Avatars, "Trusted by 200+ clients worldwide", 4.8, 3x2 logo grid)
 // -------------------------------------------------------------
-export function AlexProcessSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexProcessSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const logos = content.logos || ['STRIPE', 'LINEAR', 'VERCEL', 'RAYCAST', 'SUPABASE', 'AIRBNB'];
+
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'flex',
+    defaultFlexDirection: 'row',
+    defaultJustify: 'between',
+    defaultAlign: 'center',
+    defaultGap: 'lg',
+    defaultMaxWidth: 'boxed',
+  });
 
   const updateLogo = (index: number, val: string) => {
     const updated = [...logos];
@@ -811,14 +1309,17 @@ export function AlexProcessSection({ block, isPreviewMode, onUpdateContent, onSe
     onUpdateContent?.('logos', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-10 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-10 px-6 sm:px-10 bg-[#fafafa] dark:bg-[#0e0f14] border-y border-[#ececec] dark:border-neutral-800 transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} border-y border-[#ececec] dark:border-neutral-800 transition-all ${block.styles?.backgroundColor ? '' : 'bg-[#fafafa] dark:bg-[#0e0f14]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="flex items-center gap-4">
+      <div className={layoutConfig.wrapperClass}>
+        <div className={`flex items-center gap-4 ${layoutConfig.orderPrimary}`}>
           <div className="flex -space-x-2">
             <div className="w-8 h-8 rounded-full border-2 border-white bg-linear-to-r from-pink-300 to-rose-400"></div>
             <div className="w-8 h-8 rounded-full border-2 border-white bg-linear-to-r from-blue-300 to-indigo-400"></div>
@@ -842,7 +1343,7 @@ export function AlexProcessSection({ block, isPreviewMode, onUpdateContent, onSe
           </div>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-6 sm:gap-8 items-center text-xs font-bold text-[#b5b5b5] tracking-widest uppercase">
+        <div className={`grid grid-cols-3 sm:grid-cols-6 gap-6 sm:gap-8 items-center text-xs font-bold text-[#b5b5b5] tracking-widest uppercase ${layoutConfig.orderSecondary}`}>
           {logos.map((logo: string, i: number) => (
             <span key={i}>
               <InlineText
@@ -861,8 +1362,10 @@ export function AlexProcessSection({ block, isPreviewMode, onUpdateContent, onSe
 // -------------------------------------------------------------
 // 8. PROJECTS (Heading, "Projects 23' ↔ 25'" tabs, View All button, 3:4 ratio cards)
 // -------------------------------------------------------------
-export function AlexPortfolioSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexPortfolioSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
+  const ctaBg = content.ctaBg || block.styles?.accentColor;
+  const ctaColor = content.ctaColor;
   const projects = content.projects || [
     {
       name: 'Finova Mobile Banking',
@@ -885,21 +1388,31 @@ export function AlexPortfolioSection({ block, isPreviewMode, onUpdateContent, on
     },
   ];
 
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 3,
+    defaultGap: 'lg',
+    defaultMaxWidth: 'boxed',
+  });
+
   const updateProject = (index: number, key: string, val: string) => {
     const updated = [...projects];
     updated[index] = { ...updated[index], [key]: val };
     onUpdateContent?.('projects', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-24 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-16 md:py-24 px-6 sm:px-10 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto space-y-12">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
-          <h2 className="text-3xl sm:text-4xl font-medium tracking-[-0.02em]">
+      <div className={`${layoutConfig.maxWidthClass} ${layoutConfig.contentPosClass} space-y-12`}>
+        <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${stylesConfig.textAlignClass || 'text-left'}`}>
+          <h2 className={`${stylesConfig.headlineSizeClass || 'text-3xl sm:text-4xl'} font-medium tracking-[-0.02em]`}>
             <span className="text-[#111] dark:text-white">
               <InlineText
                 value={content.headlineDark || 'Selected'}
@@ -922,22 +1435,37 @@ export function AlexPortfolioSection({ block, isPreviewMode, onUpdateContent, on
               <span className="px-3 py-1 text-[#555] dark:text-neutral-400">UI/UX</span>
               <span className="px-3 py-1 text-[#555] dark:text-neutral-400">Dev</span>
             </div>
-            <button type="button" className="px-4 py-1.5 text-xs font-medium border border-[#ececec] dark:border-neutral-700 rounded-lg">
-              View All
+            <button
+              type="button"
+              style={{
+                ...(ctaBg ? { backgroundColor: ctaBg, backgroundImage: 'none' } : {}),
+                ...(ctaColor ? { color: ctaColor } : {}),
+              }}
+              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all border ${ctaBg ? 'border-transparent text-white' : 'border-[#ececec] dark:border-neutral-700'
+                }`}
+            >
+              <InlineText
+                value={content.ctaText || 'View All'}
+                onSave={(v) => onUpdateContent?.('ctaText', v)}
+                disabled={isPreviewMode}
+              />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className={layoutConfig.wrapperClass}>
           {projects.map((proj: any, i: number) => (
             <div key={i} className="space-y-3 text-left group">
               <div className="relative aspect-3/4 rounded-xl bg-linear-to-br from-[#f2f2f2] to-[#e5e5e5] dark:from-neutral-800 dark:to-neutral-900 overflow-hidden border border-[#ececec] dark:border-neutral-800">
-                <img
+                <EditableImage
                   src={proj.imgUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'}
                   alt={proj.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full"
+                  imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onSave={(newUrl) => updateProject(i, 'imgUrl', newUrl)}
+                  disabled={isPreviewMode}
                 />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-full bg-white text-[#111] text-xs font-bold shadow-lg opacity-90 group-hover:scale-110 transition-transform">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-full bg-white text-[#111] text-xs font-bold shadow-lg opacity-90 group-hover:scale-110 transition-transform pointer-events-auto z-10">
                   <InlineText
                     value={proj.hoverBadge || '+ View'}
                     onSave={(v) => updateProject(i, 'hoverBadge', v)}
@@ -980,7 +1508,7 @@ export function AlexPortfolioSection({ block, isPreviewMode, onUpdateContent, on
 // -------------------------------------------------------------
 // 9. PRICING (Basic $4,650 Light with gradient button & Business $2,940 Dark with white button + 3-column perks)
 // -------------------------------------------------------------
-export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const standard = content.standard || {
     name: 'Basic',
@@ -1020,6 +1548,13 @@ export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSe
     { title: '100% IP Ownership', text: 'All designs, tokens, and code belong entirely to your company.' },
   ];
 
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 2,
+    defaultGap: 'lg',
+    defaultMaxWidth: 'boxed',
+  });
+
   const updateStandard = (key: string, val: any) => {
     onUpdateContent?.('standard', { ...standard, [key]: val });
   };
@@ -1034,15 +1569,23 @@ export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSe
     onUpdateContent?.('perks', updated);
   };
 
+  const standardBtnBg = standard.ctaBg || content.standardCtaBg || block.styles?.accentColor;
+  const standardBtnColor = standard.ctaColor || content.standardCtaColor || (standardBtnBg ? '#ffffff' : undefined);
+  const enterpriseBtnBg = enterprise.ctaBg || content.enterpriseCtaBg;
+  const enterpriseBtnColor = enterprise.ctaColor || content.enterpriseCtaColor;
+
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-24 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-16 md:py-24 px-6 sm:px-10 bg-[#fafafa] dark:bg-[#0a0b10] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-[#fafafa] dark:bg-[#0a0b10]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto space-y-12">
-        <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-medium tracking-[-0.02em]">
+      <div className={`${layoutConfig.maxWidthClass} ${layoutConfig.contentPosClass} space-y-12`}>
+        <div className={stylesConfig.textAlignClass || 'text-center'}>
+          <h2 className={`${stylesConfig.headlineSizeClass || 'text-3xl sm:text-4xl'} font-medium tracking-[-0.02em]`}>
             <span className="text-[#111] dark:text-white">
               <InlineText
                 value={content.headlineDark || 'Flexible plans'}
@@ -1060,9 +1603,9 @@ export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSe
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+        <div className={layoutConfig.wrapperClass}>
           {/* Basic Plan (Light with $4,650 and gradient button) */}
-          <div className="rounded-xl bg-white dark:bg-neutral-900 border border-[#ececec] dark:border-neutral-800 p-8 sm:p-10 shadow-md space-y-8 flex flex-col justify-between text-left">
+          <div className={`rounded-xl ${layoutConfig.orderPrimary} bg-white dark:bg-neutral-900 border border-[#ececec] dark:border-neutral-800 p-8 sm:p-10 shadow-md space-y-8 flex flex-col justify-between text-left`}>
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#d9ff1a] text-[#111]">
@@ -1123,7 +1666,12 @@ export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSe
             </div>
             <button
               type="button"
-              className="w-full py-3 rounded-lg font-semibold text-xs text-white bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f] shadow-md hover:opacity-95"
+              style={{
+                ...(standardBtnBg ? { backgroundColor: standardBtnBg, backgroundImage: 'none' } : {}),
+                ...(standardBtnColor ? { color: standardBtnColor } : {}),
+              }}
+              className={`w-full py-3 rounded-lg font-semibold text-xs shadow-md transition-all ${standardBtnBg ? 'hover:opacity-95' : 'text-white bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f] hover:opacity-95'
+                }`}
             >
               <InlineText
                 value={standard.cta || 'Get Started'}
@@ -1134,7 +1682,7 @@ export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSe
           </div>
 
           {/* Business Plan (Dark #161616 with $2,940 and white button) */}
-          <div className="rounded-xl bg-[#161616] border border-neutral-800 p-8 sm:p-10 shadow-xl space-y-8 flex flex-col justify-between text-left text-white">
+          <div className={`rounded-xl ${layoutConfig.orderSecondary} bg-[#161616] border border-neutral-800 p-8 sm:p-10 shadow-xl space-y-8 flex flex-col justify-between text-left text-white`}>
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#262626] text-white border border-[#333]">
@@ -1195,7 +1743,12 @@ export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSe
             </div>
             <button
               type="button"
-              className="w-full py-3 rounded-lg font-semibold text-xs text-[#111] bg-white hover:bg-neutral-100 shadow-md transition-all"
+              style={{
+                ...(enterpriseBtnBg ? { backgroundColor: enterpriseBtnBg, backgroundImage: 'none' } : {}),
+                ...(enterpriseBtnColor ? { color: enterpriseBtnColor } : {}),
+              }}
+              className={`w-full py-3 rounded-lg font-semibold text-xs shadow-md transition-all ${enterpriseBtnBg ? 'hover:opacity-95' : 'text-[#111] bg-white hover:bg-neutral-100'
+                }`}
             >
               <InlineText
                 value={enterprise.cta || 'Get Started'}
@@ -1236,9 +1789,16 @@ export function AlexPricingSection({ block, isPreviewMode, onUpdateContent, onSe
 // -------------------------------------------------------------
 // 10. TESTIMONIALS (Tab names row + Photo left + Lime badge + Quote right)
 // -------------------------------------------------------------
-export function AlexTestimonialSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexTestimonialSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const tabs = content.tabs || ['Horizon AI', 'Linear Systems', 'Stripe Ecosystem', 'Raycast Labs'];
+
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 12,
+    defaultGap: 'lg',
+    defaultMaxWidth: 'boxed',
+  });
 
   const updateTab = (index: number, val: string) => {
     const updated = [...tabs];
@@ -1246,13 +1806,16 @@ export function AlexTestimonialSection({ block, isPreviewMode, onUpdateContent, 
     onUpdateContent?.('tabs', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-24 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-16 md:py-24 px-6 sm:px-10 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto space-y-10">
+      <div className={`${layoutConfig.maxWidthClass} ${layoutConfig.contentPosClass} space-y-10`}>
         {/* Tab names row with active tab underlined */}
         <div className="flex items-center justify-center gap-8 border-b border-[#ececec] dark:border-neutral-800 pb-3 text-xs font-medium">
           {tabs.map((tab: string, i: number) => (
@@ -1273,19 +1836,22 @@ export function AlexTestimonialSection({ block, isPreviewMode, onUpdateContent, 
           ))}
         </div>
 
-        <div className="p-8 sm:p-12 rounded-xl bg-white dark:bg-[#161616] border border-[#ececec] dark:border-neutral-800 shadow-md grid grid-cols-1 md:grid-cols-12 gap-8 items-center text-left">
-          <div className="md:col-span-4 aspect-square rounded-lg overflow-hidden bg-slate-100">
-            <img
+        <div className={`p-8 sm:p-12 rounded-xl bg-white dark:bg-[#161616] border border-[#ececec] dark:border-neutral-800 shadow-md ${layoutConfig.isGrid ? 'grid grid-cols-1 md:grid-cols-12' : `flex ${layoutConfig.active.flexDirection === 'col' ? (layoutConfig.active.reverse ? 'flex-col-reverse' : 'flex-col') : (layoutConfig.active.reverse ? 'flex-col md:flex-row-reverse' : 'flex-col md:flex-row')}`} gap-8 items-center text-left`}>
+          <div className={`md:col-span-4 ${layoutConfig.orderPrimary} aspect-square rounded-lg overflow-hidden bg-slate-100`}>
+            <EditableImage
               src={
                 content.avatarUrl ||
                 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80'
               }
               alt="David Sterling"
-              className="w-full h-full object-cover"
+              className="w-full h-full"
+              imgClassName="w-full h-full object-cover"
+              onSave={(newUrl) => onUpdateContent?.('avatarUrl', newUrl)}
+              disabled={isPreviewMode}
             />
           </div>
 
-          <div className="md:col-span-8 space-y-4">
+          <div className={`md:col-span-8 ${layoutConfig.orderSecondary} space-y-4`}>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#d9ff1a] text-[#111]">
               <InlineText
                 value={content.badge || 'Client Review'}
@@ -1293,7 +1859,7 @@ export function AlexTestimonialSection({ block, isPreviewMode, onUpdateContent, 
                 disabled={isPreviewMode}
               />
             </span>
-            <blockquote className="text-xl sm:text-2xl font-medium tracking-[-0.02em] text-[#111] dark:text-white leading-snug">
+            <blockquote className={`${stylesConfig.headlineSizeClass || 'text-xl sm:text-2xl'} font-medium tracking-[-0.02em] text-[#111] dark:text-white leading-snug`}>
               <InlineText
                 value={
                   content.quote ||
@@ -1339,8 +1905,10 @@ export function AlexTestimonialSection({ block, isPreviewMode, onUpdateContent, 
 // -------------------------------------------------------------
 // 11. BLOG (Heading + Read All Blogs button + Tall image left + 3 post rows right)
 // -------------------------------------------------------------
-export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
+  const ctaBg = content.ctaBg || block.styles?.accentColor;
+  const ctaColor = content.ctaColor;
   const featured = content.featured || {
     tag: 'Design Engineering',
     title: 'How to Build High-Converting SaaS Landing Pages in 2024',
@@ -1353,6 +1921,13 @@ export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onS
     { date: 'February 2024', title: 'Future of AI-assisted UI tools for solo agency founders', linkText: 'Read More →' },
   ];
 
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 12,
+    defaultGap: 'lg',
+    defaultMaxWidth: 'boxed',
+  });
+
   const updateFeatured = (key: string, val: string) => {
     onUpdateContent?.('featured', { ...featured, [key]: val });
   };
@@ -1363,15 +1938,18 @@ export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onS
     onUpdateContent?.('articles', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-24 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-16 md:py-24 px-6 sm:px-10 bg-[#fafafa] dark:bg-[#0a0b10] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-[#fafafa] dark:bg-[#0a0b10]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto space-y-10">
-        <div className="flex items-center justify-between text-left">
-          <h2 className="text-3xl sm:text-4xl font-medium tracking-[-0.02em]">
+      <div className={`${layoutConfig.maxWidthClass} ${layoutConfig.contentPosClass} space-y-10`}>
+        <div className={`flex items-center justify-between ${stylesConfig.textAlignClass || 'text-left'}`}>
+          <h2 className={`${stylesConfig.headlineSizeClass || 'text-3xl sm:text-4xl'} font-medium tracking-[-0.02em]`}>
             <span className="text-[#111] dark:text-white">
               <InlineText
                 value={content.headlineDark || 'Latest thoughts'}
@@ -1387,7 +1965,15 @@ export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onS
               />
             </span>
           </h2>
-          <button type="button" className="px-4 py-1.5 text-xs font-medium border border-[#ececec] dark:border-neutral-700 rounded-lg">
+          <button
+            type="button"
+            style={{
+              ...(ctaBg ? { backgroundColor: ctaBg, backgroundImage: 'none' } : {}),
+              ...(ctaColor ? { color: ctaColor } : {}),
+            }}
+            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all border ${ctaBg ? 'border-transparent text-white' : 'border-[#ececec] dark:border-neutral-700'
+              }`}
+          >
             <InlineText
               value={content.ctaText || 'Read All Blogs'}
               onSave={(v) => onUpdateContent?.('ctaText', v)}
@@ -1396,23 +1982,26 @@ export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onS
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
+        <div className={layoutConfig.wrapperClass}>
           {/* Tall Image left */}
-          <div className="md:col-span-6 relative rounded-xl overflow-hidden aspect-4/3 border border-[#ececec] dark:border-neutral-800">
-            <img
+          <div className={`${layoutConfig.isGrid ? 'md:col-span-6' : 'flex-1'} ${layoutConfig.orderPrimary} relative rounded-xl overflow-hidden aspect-4/3 border border-[#ececec] dark:border-neutral-800`}>
+            <EditableImage
               src={featured.imgUrl || 'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=800&q=80'}
               alt={featured.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
+              imgClassName="w-full h-full object-cover"
+              onSave={(newUrl) => updateFeatured('imgUrl', newUrl)}
+              disabled={isPreviewMode}
             />
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent p-6 flex flex-col justify-end text-left text-white">
-              <span className="self-start px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#d9ff1a] text-[#111] mb-2">
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent p-6 flex flex-col justify-end text-left text-white pointer-events-none">
+              <span className="self-start px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#d9ff1a] text-[#111] mb-2 pointer-events-auto">
                 <InlineText
                   value={featured.tag || 'Design Engineering'}
                   onSave={(v) => updateFeatured('tag', v)}
                   disabled={isPreviewMode}
                 />
               </span>
-              <h3 className="text-lg font-medium leading-tight">
+              <h3 className="text-lg font-medium leading-tight pointer-events-auto">
                 <InlineText
                   value={featured.title || 'How to Build High-Converting SaaS Landing Pages in 2024'}
                   onSave={(v) => updateFeatured('title', v)}
@@ -1423,7 +2012,7 @@ export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onS
           </div>
 
           {/* 3 post rows right */}
-          <div className="md:col-span-6 flex flex-col justify-between gap-4 text-left">
+          <div className={`${layoutConfig.isGrid ? 'md:col-span-6' : 'flex-1'} ${layoutConfig.orderSecondary} flex flex-col justify-between gap-4 text-left`}>
             {articles.map((art: any, i: number) => (
               <div key={i} className="p-5 rounded-xl bg-white dark:bg-[#161616] border border-[#ececec] dark:border-neutral-800">
                 <span className="text-[10px] text-[#b5b5b5]">
@@ -1459,7 +2048,7 @@ export function AlexArticlesSection({ block, isPreviewMode, onUpdateContent, onS
 // -------------------------------------------------------------
 // 12. FAQ (4 accordion items using details/summary, first one open)
 // -------------------------------------------------------------
-export function AlexFaqSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexFaqSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const faqs = content.faqs || [
     {
@@ -1484,20 +2073,30 @@ export function AlexFaqSection({ block, isPreviewMode, onUpdateContent, onSelect
     },
   ];
 
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'flex',
+    defaultFlexDirection: 'col',
+    defaultMaxWidth: 'compact',
+    defaultGap: 'md',
+  });
+
   const updateFaq = (index: number, key: 'question' | 'answer', val: string) => {
     const updated = [...faqs];
     updated[index] = { ...updated[index], [key]: val };
     onUpdateContent?.('faqs', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-16 md:py-24 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-16 md:py-24 px-6 sm:px-10 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-200 mx-auto space-y-10">
-        <h2 className="text-3xl sm:text-4xl font-medium tracking-[-0.02em] text-center">
+      <div className={`${layoutConfig.maxWidthClass} ${layoutConfig.contentPosClass} space-y-10 ${stylesConfig.textAlignClass || 'text-center'}`}>
+        <h2 className={`${stylesConfig.headlineSizeClass || 'text-3xl sm:text-4xl'} font-medium tracking-[-0.02em]`}>
           <span className="text-[#111] dark:text-white">
             <InlineText
               value={content.headlineDark || 'Frequently'}
@@ -1551,7 +2150,7 @@ export function AlexFaqSection({ block, isPreviewMode, onUpdateContent, onSelect
 // -------------------------------------------------------------
 // 13. SOCIAL ROW (4 cells: Behance, Dribbble, LinkedIn, Instagram)
 // -------------------------------------------------------------
-export function AlexGuaranteesSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexGuaranteesSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const socials = content.socials || [
     { name: 'Behance', url: 'https://behance.net' },
@@ -1560,19 +2159,29 @@ export function AlexGuaranteesSection({ block, isPreviewMode, onUpdateContent, o
     { name: 'Instagram', url: 'https://instagram.com' },
   ];
 
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 4,
+    defaultMaxWidth: 'boxed',
+    defaultGap: 'none',
+  });
+
   const updateSocial = (index: number, val: string) => {
     const updated = [...socials];
     updated[index] = { ...updated[index], name: val };
     onUpdateContent?.('socials', updated);
   };
 
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'py-6 px-6 sm:px-10');
+
   return (
     <section
       onClick={onSelect}
-      className={`py-6 px-6 sm:px-10 border-y border-[#ececec] dark:border-neutral-800 bg-white dark:bg-[#0c0d12] transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} border-y border-[#ececec] dark:border-neutral-800 transition-all ${block.styles?.backgroundColor ? '' : 'bg-white dark:bg-[#0c0d12]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto grid grid-cols-2 md:grid-cols-4 divide-x divide-[#ececec] dark:divide-neutral-800 text-center">
+      <div className={`${layoutConfig.wrapperClass} divide-x divide-[#ececec] dark:divide-neutral-800 text-center`}>
         {socials.map((s: any, i: number) => (
           <a
             key={i}
@@ -1602,18 +2211,30 @@ export function AlexGuaranteesSection({ block, isPreviewMode, onUpdateContent, o
 // -------------------------------------------------------------
 // 14. FOOTER (Dark #121212 with giant faded "Alex Travis.")
 // -------------------------------------------------------------
-export function AlexFooterSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected }: AlexSectionProps) {
+export function AlexFooterSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
+  const footerBtnBg = content.ctaBgColor || block.styles?.accentColor;
+  const footerBtnColor = content.ctaTextColor || (footerBtnBg ? '#ffffff' : undefined);
+
+  const layoutConfig = resolveSectionLayout(block.layout, viewport, {
+    defaultDisplay: 'grid',
+    defaultColumns: 12,
+    defaultGap: 'xl',
+    defaultMaxWidth: 'boxed',
+  });
+
+  const stylesConfig = resolveSectionStyles(block.styles, viewport, 'pt-20 pb-12 px-6 sm:px-10');
 
   return (
     <footer
       onClick={onSelect}
-      className={`relative pt-20 pb-12 px-6 sm:px-10 bg-[#121212] text-white overflow-hidden transition-all ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-        }`}
+      style={stylesConfig.sectionStyle}
+      className={`relative ${stylesConfig.sectionClasses} text-white overflow-hidden transition-all ${block.styles?.backgroundColor ? '' : 'bg-[#121212]'
+        } ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
     >
-      <div className="max-w-300 mx-auto space-y-16 relative z-10 text-left">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
-          <div className="md:col-span-6 space-y-4">
+      <div className={`${layoutConfig.maxWidthClass} ${layoutConfig.contentPosClass} space-y-16 relative z-10 text-left`}>
+        <div className={layoutConfig.wrapperClass}>
+          <div className={`${layoutConfig.isGrid ? 'md:col-span-6' : 'flex-1'} ${layoutConfig.orderPrimary} space-y-4`}>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-[#d9ff1a] text-[#111] font-bold flex items-center justify-center text-xs">
                 <InlineText
@@ -1646,7 +2267,12 @@ export function AlexFooterSection({ block, isPreviewMode, onUpdateContent, onSel
             <div className="flex items-center gap-4 pt-2">
               <button
                 type="button"
-                className="px-6 py-2.5 rounded-lg font-semibold text-xs text-white bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f] shadow-md hover:opacity-95"
+                style={{
+                  ...(footerBtnBg ? { backgroundColor: footerBtnBg, backgroundImage: 'none' } : {}),
+                  ...(footerBtnColor ? { color: footerBtnColor } : {}),
+                }}
+                className={`px-6 py-2.5 rounded-lg font-semibold text-xs shadow-md hover:opacity-95 transition-all ${footerBtnBg ? 'text-white' : 'text-white bg-linear-to-r from-[#ff2d9b] via-[#ff7a2f] to-[#ffd21f]'
+                  }`}
               >
                 <InlineText
                   value={content.ctaText || 'Hire Me!'}
@@ -1664,7 +2290,7 @@ export function AlexFooterSection({ block, isPreviewMode, onUpdateContent, onSel
             </div>
           </div>
 
-          <div className="md:col-span-6 grid grid-cols-3 gap-8 text-xs">
+          <div className={`${layoutConfig.isGrid ? 'md:col-span-6' : 'flex-1'} ${layoutConfig.orderSecondary} grid grid-cols-3 gap-8 text-xs`}>
             <div className="space-y-3">
               <span className="font-semibold text-[#b5b5b5] uppercase tracking-wider text-[11px]">Navigation</span>
               <ul className="space-y-2 text-[#999]">

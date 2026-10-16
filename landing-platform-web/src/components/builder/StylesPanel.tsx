@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ElementStyles, BlockStyles } from '../../../../shared/types';
+import { ElementStyles, BlockStyles, StyleClass, DesignTokens } from '../../../../shared/types';
 import {
   Palette,
   Image as ImageIcon,
@@ -16,15 +16,37 @@ import {
   Sun,
   Layers,
   X,
+  Monitor,
+  Tablet,
+  Smartphone,
+  Sparkles,
 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { ImageSourcePicker } from './ImageSourcePicker';
+import { useTheme } from '../theme/ThemeProvider';
+import { ClassSelectorManager } from './ClassSelectorManager';
 
 interface StylesPanelProps {
   styles?: ElementStyles | BlockStyles;
   onChange: (key: string, value: any) => void;
   isElement?: boolean;
   isContainer?: boolean;
+  defaultAccentColor?: string;
+  defaultAccentGradient?: string;
+  viewport?: 'desktop' | 'tablet' | 'mobile';
+  onViewportChange?: (vp: 'desktop' | 'tablet' | 'mobile') => void;
+  onResetBreakpoint?: (vp: 'tablet' | 'mobile') => void;
+  classNames?: string[];
+  styleClasses?: StyleClass[];
+  tokens?: DesignTokens;
+  onAddClass?: (name: string) => void;
+  onRemoveClass?: (name: string) => void;
+  onCreateClass?: (name: string) => void;
+  targetClassName?: string | null;
+  onSelectTargetClass?: (name: string | null) => void;
+  isEditingSharedClass?: boolean;
+  onToggleEditSharedClass?: (enabled: boolean) => void;
+  onOpenTokensModal?: () => void;
 }
 
 export function StylesPanel({
@@ -32,18 +54,53 @@ export function StylesPanel({
   onChange,
   isElement = false,
   isContainer = false,
+  defaultAccentColor,
+  defaultAccentGradient,
+  viewport,
+  onViewportChange,
+  onResetBreakpoint,
+  classNames = [],
+  styleClasses = [],
+  tokens,
+  onAddClass,
+  onRemoveClass,
+  onCreateClass,
+  targetClassName,
+  onSelectTargetClass,
+  isEditingSharedClass = false,
+  onToggleEditSharedClass,
+  onOpenTokensModal,
 }: StylesPanelProps) {
-  const s = styles as Record<string, any>;
+  const { resolvedTheme } = useTheme();
+  const isLight = resolvedTheme === 'light';
+
+  const isTablet = viewport === 'tablet';
+  const isMobile = viewport === 'mobile';
+  const rawStyles = (styles || {}) as Record<string, any>;
+  const activeOverrides = isMobile
+    ? { ...(rawStyles.tablet || {}), ...(rawStyles.mobile || {}) }
+    : isTablet
+    ? { ...(rawStyles.tablet || {}) }
+    : {};
+
+  const s = {
+    ...rawStyles,
+    ...activeOverrides,
+  };
+
+  const hasTabletOverrides = Boolean(rawStyles.tablet && Object.keys(rawStyles.tablet).length > 0);
+  const hasMobileOverrides = Boolean(rawStyles.mobile && Object.keys(rawStyles.mobile).length > 0);
+  const hasCurrentOverrides = isTablet ? hasTabletOverrides : isMobile ? hasMobileOverrides : false;
 
   const colorPresets = [
     { label: 'Transparent', value: 'transparent' },
+    { label: 'Primary Brand Token', value: tokens?.colors.primary || '#2563eb' },
+    { label: 'Secondary Token', value: tokens?.colors.secondary || '#64748b' },
+    { label: 'Accent Token', value: tokens?.colors.accent || '#10b981' },
     { label: 'Dark Navy', value: '#090a0f' },
     { label: 'Slate 900', value: '#0f172a' },
-    { label: 'Zinc 900', value: '#18181b' },
     { label: 'White', value: '#ffffff' },
     { label: 'Slate 100', value: '#f1f5f9' },
-    { label: 'Blue 600', value: '#2563eb' },
-    { label: 'Emerald 600', value: '#059669' },
     { label: 'Violet 600', value: '#7c3aed' },
     { label: 'Amber 500', value: '#f59e0b' },
     { label: 'Rose 600', value: '#e11d48' },
@@ -66,8 +123,107 @@ export function StylesPanel({
 
   return (
     <div className="space-y-5 text-xs select-none">
+      {/* 1. Webflow Style Selector (Class Manager) */}
+      {onAddClass && onRemoveClass && (
+        <ClassSelectorManager
+          classNames={classNames}
+          styleClasses={styleClasses}
+          onAddClassToElement={onAddClass}
+          onRemoveClassFromElement={onRemoveClass}
+          onCreateClassFromElement={onCreateClass || onAddClass}
+          targetClassName={targetClassName}
+          onSelectTargetClass={onSelectTargetClass}
+          isEditingSharedClass={isEditingSharedClass}
+          onToggleEditSharedClass={onToggleEditSharedClass}
+        />
+      )}
+
+      {/* 2. Global Design Tokens Quick Button */}
+      {onOpenTokensModal && (
+        <button
+          type="button"
+          onClick={onOpenTokensModal}
+          className="w-full flex items-center justify-between p-2.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-950/40 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span className="font-semibold text-xs">Design System Tokens</span>
+          </div>
+          <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">Configure</span>
+        </button>
+      )}
+
+      {/* 3. Device Viewport Selector */}
+      {onViewportChange && (
+        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-slate-700 dark:text-neutral-200">Device Style View:</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
+              {viewport || 'desktop'}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-1 bg-slate-200/70 dark:bg-neutral-950 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => onViewportChange('desktop')}
+              className={`py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-medium transition-all ${
+                (viewport || 'desktop') === 'desktop'
+                  ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span>Desktop</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewportChange('tablet')}
+              className={`py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-medium transition-all ${
+                viewport === 'tablet'
+                  ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Tablet className="w-3.5 h-3.5" />
+              <span>Tablet</span>
+              {hasTabletOverrides && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Custom tablet style overrides" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewportChange('mobile')}
+              className={`py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-medium transition-all ${
+                viewport === 'mobile'
+                  ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs font-semibold'
+                  : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Mobile</span>
+              {hasMobileOverrides && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Custom mobile style overrides" />}
+            </button>
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-[10px] text-slate-500 dark:text-neutral-400 leading-tight">
+              {viewport === 'desktop'
+                ? 'Base styles: applied to all devices unless overridden.'
+                : hasCurrentOverrides
+                ? `✓ Custom styles active for ${viewport === 'tablet' ? 'Tablet' : 'Mobile'}.`
+                : `Inheriting from ${viewport === 'mobile' ? 'Tablet/Desktop' : 'Desktop'}. Edit below to override.`}
+            </p>
+            {hasCurrentOverrides && onResetBreakpoint && (
+              <button
+                type="button"
+                onClick={() => onResetBreakpoint(viewport as 'tablet' | 'mobile')}
+                className="text-[10px] text-red-500 hover:text-red-400 underline font-medium shrink-0 ml-2"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       {/* ======================================================== */}
-      {/* 1. BACKGROUND (COLOR & IMAGE)                            */}
+      {/* 4. BACKGROUND (COLOR & IMAGE)                            */}
       {/* ======================================================== */}
       <div className="space-y-3">
         <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-neutral-200">
@@ -84,7 +240,7 @@ export function StylesPanel({
             <div className="relative w-8 h-8 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden shrink-0 shadow-xs">
               <input
                 type="color"
-                value={s.backgroundColor?.startsWith('#') ? s.backgroundColor : '#090a0f'}
+                value={s.backgroundColor?.startsWith('#') ? s.backgroundColor : (isLight ? '#ffffff' : '#090a0f')}
                 onChange={(e) => onChange('backgroundColor', e.target.value)}
                 className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 cursor-pointer"
                 title="Choose background color"
@@ -92,7 +248,7 @@ export function StylesPanel({
             </div>
             <Input
               value={s.backgroundColor ?? ''}
-              placeholder="e.g. #090a0f or transparent"
+              placeholder={isLight ? 'e.g. #ffffff or transparent' : 'e.g. #090a0f or transparent'}
               onChange={(e) => onChange('backgroundColor', e.target.value)}
               className="font-mono text-xs flex-1 h-8"
             />
@@ -303,16 +459,19 @@ export function StylesPanel({
           <span>Text &amp; Coloring</span>
         </div>
 
-        {/* Text Color */}
+        {/* Section / Element Text Color */}
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 dark:text-neutral-400 mb-1.5">
-            Text Color
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[11px] font-medium text-slate-600 dark:text-neutral-400">
+              {isElement ? 'Text Color' : 'Section Text Color'}
+            </label>
+            <span className="text-[10px] text-slate-400">Headings &amp; Body</span>
+          </div>
           <div className="flex items-center gap-2">
             <div className="relative w-8 h-8 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden shrink-0 shadow-xs">
               <input
                 type="color"
-                value={s.textColor?.startsWith('#') ? s.textColor : '#ffffff'}
+                value={s.textColor?.startsWith('#') ? s.textColor : (isLight ? '#0f172a' : '#ffffff')}
                 onChange={(e) => onChange('textColor', e.target.value)}
                 className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 cursor-pointer"
                 title="Choose text color"
@@ -320,7 +479,7 @@ export function StylesPanel({
             </div>
             <Input
               value={s.textColor ?? ''}
-              placeholder="e.g. #ffffff or #0f172a"
+              placeholder={isLight ? 'e.g. #0f172a' : 'e.g. #ffffff'}
               onChange={(e) => onChange('textColor', e.target.value)}
               className="font-mono text-xs flex-1 h-8"
             />
@@ -329,125 +488,354 @@ export function StylesPanel({
 
         {/* Accent / CTA Color */}
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 dark:text-neutral-400 mb-1.5">
-            Accent / CTA Color
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[11px] font-medium text-slate-600 dark:text-neutral-400">
+              Accent / CTA Color
+            </label>
+            {s.accentColor && (
+              <button
+                type="button"
+                onClick={() => onChange('accentColor', '')}
+                className="text-[10px] text-slate-400 hover:text-red-500 hover:underline"
+              >
+                Reset to default
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <div className="relative w-8 h-8 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden shrink-0 shadow-xs">
               <input
                 type="color"
-                value={s.accentColor?.startsWith('#') ? s.accentColor : '#10b981'}
+                value={s.accentColor?.startsWith('#') ? s.accentColor : (defaultAccentColor || '#ff2d9b')}
                 onChange={(e) => onChange('accentColor', e.target.value)}
                 className="absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 cursor-pointer"
                 title="Choose accent color"
               />
+              {!s.accentColor && defaultAccentGradient && (
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: defaultAccentGradient.startsWith('linear-gradient')
+                      ? defaultAccentGradient
+                      : 'linear-gradient(to right, #ff2d9b, #ff7a2f, #ffd21f)',
+                  }}
+                  title="Default template gradient"
+                />
+              )}
             </div>
             <Input
               value={s.accentColor ?? ''}
-              placeholder="e.g. #10b981 or #3b82f6"
+              placeholder={
+                defaultAccentGradient && !s.accentColor
+                  ? 'Default: Template Gradient'
+                  : defaultAccentColor
+                  ? `Default: ${defaultAccentColor}`
+                  : 'e.g. #ff2d9b or #10b981'
+              }
               onChange={(e) => onChange('accentColor', e.target.value)}
               className="font-mono text-xs flex-1 h-8"
             />
           </div>
+          {!s.accentColor && defaultAccentGradient && (
+            <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-1">
+              Using template default gradient. Pick a color to override.
+            </p>
+          )}
         </div>
 
-        {/* Element Font Size (if element) */}
+        {/* ======================================================== */}
+        {/* ELEMENT TYPOGRAPHY (IF ELEMENT)                          */}
+        {/* ======================================================== */}
         {isElement && (
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 dark:text-neutral-400 mb-1.5">
-              Font Size
-            </label>
-            <div className="grid grid-cols-4 gap-1">
-              {[
-                { id: 'xs', label: 'XS' },
-                { id: 'sm', label: 'SM' },
-                { id: 'base', label: 'Base' },
-                { id: 'lg', label: 'LG' },
-                { id: 'xl', label: 'XL' },
-                { id: '2xl', label: '2XL' },
-                { id: '3xl', label: '3XL' },
-              ].map((f) => {
-                const active = s.fontSize === f.id;
-                return (
+          <>
+            {/* Element Font Size */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-medium text-slate-600 dark:text-neutral-400">
+                  Font Size {viewport && <span className="uppercase text-[9px] text-blue-600 dark:text-blue-400">({viewport})</span>}
+                </label>
+                {s.fontSize && (
+                  <button
+                    type="button"
+                    onClick={() => onChange('fontSize', undefined)}
+                    className="text-[10px] text-slate-400 hover:text-blue-500 hover:underline"
+                  >
+                    Default
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {[
+                  { id: 'xs', label: 'XS', px: '12px' },
+                  { id: 'sm', label: 'SM', px: '14px' },
+                  { id: 'base', label: 'Base', px: '16px' },
+                  { id: 'lg', label: 'LG', px: '18px' },
+                  { id: 'xl', label: 'XL', px: '20px' },
+                  { id: '2xl', label: '2XL', px: '24px' },
+                  { id: '3xl', label: '3XL', px: '30px' },
+                ].map((f) => {
+                  const active = s.fontSize === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => onChange('fontSize', f.id)}
+                      className={`py-1 px-1 rounded-lg border text-center transition-colors flex flex-col items-center justify-center ${
+                        active
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-white font-semibold shadow-xs'
+                          : 'border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-neutral-700'
+                      }`}
+                    >
+                      <span className="text-[11px] font-medium">{f.label}</span>
+                      <span className="text-[9px] opacity-60 leading-none">{f.px}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Element Text Alignment */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-medium text-slate-600 dark:text-neutral-400">
+                  Text Alignment {viewport && <span className="uppercase text-[9px] text-blue-600 dark:text-blue-400">({viewport})</span>}
+                </label>
+                {s.textAlign && (
+                  <button
+                    type="button"
+                    onClick={() => onChange('textAlign', undefined)}
+                    className="text-[10px] text-slate-400 hover:text-blue-500 hover:underline"
+                  >
+                    Default
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { id: 'left', icon: <AlignLeft className="w-3.5 h-3.5" />, label: 'Left' },
+                  { id: 'center', icon: <AlignCenter className="w-3.5 h-3.5" />, label: 'Center' },
+                  { id: 'right', icon: <AlignRight className="w-3.5 h-3.5" />, label: 'Right' },
+                ].map((al) => {
+                  const active = (s.textAlign || 'left') === al.id;
+                  return (
+                    <button
+                      key={al.id}
+                      type="button"
+                      onClick={() => onChange('textAlign', al.id)}
+                      className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg border text-xs transition-colors ${
+                        active
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-white font-semibold'
+                          : 'border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400'
+                      }`}
+                    >
+                      {al.icon}
+                      <span>{al.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ======================================================== */}
+        {/* SECTION & CONTAINER TYPOGRAPHY (IF SECTION / CONTAINER)  */}
+        {/* ======================================================== */}
+        {!isElement && (
+          <>
+            {/* Section Headline Font Size (H1 / H2) */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-[11px] font-medium text-slate-700 dark:text-neutral-300">
+                    Headline Size (H1/H2)
+                  </label>
+                  {viewport && (
+                    <span className="uppercase text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                      {viewport}
+                    </span>
+                  )}
+                </div>
+                {s.headlineFontSize && (
+                  <button
+                    type="button"
+                    onClick={() => onChange('headlineFontSize', undefined)}
+                    className="text-[10px] text-blue-500 hover:underline font-medium"
+                  >
+                    Reset Default
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {[
+                  { id: 'sm', label: 'SM', px: '24px' },
+                  { id: 'md', label: 'MD', px: '30px' },
+                  { id: 'lg', label: 'LG', px: '36px' },
+                  { id: 'xl', label: 'XL', px: '48px' },
+                  { id: '2xl', label: '2XL', px: '60px' },
+                  { id: '3xl', label: '3XL', px: '72px' },
+                  { id: '4xl', label: '4XL', px: '84px' },
+                ].map((hf) => {
+                  const active = s.headlineFontSize === hf.id;
+                  return (
+                    <button
+                      key={hf.id}
+                      type="button"
+                      onClick={() => onChange('headlineFontSize', hf.id)}
+                      className={`py-1 px-1 rounded-lg border text-center transition-all flex flex-col items-center justify-center ${
+                        active
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-white font-semibold shadow-xs ring-1 ring-blue-500/20'
+                          : 'border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-neutral-700'
+                      }`}
+                    >
+                      <span className="text-[11px] font-medium">{hf.label}</span>
+                      <span className="text-[9px] opacity-60 leading-none">{hf.px}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {!s.headlineFontSize && (
+                <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-1">
+                  Using section template default heading scale.
+                </p>
+              )}
+            </div>
+
+            {/* Section Body / Text Font Size */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-[11px] font-medium text-slate-700 dark:text-neutral-300">
+                    Body / Paragraph Size
+                  </label>
+                  {viewport && (
+                    <span className="uppercase text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                      {viewport}
+                    </span>
+                  )}
+                </div>
+                {s.fontSize && (
+                  <button
+                    type="button"
+                    onClick={() => onChange('fontSize', undefined)}
+                    className="text-[10px] text-blue-500 hover:underline font-medium"
+                  >
+                    Reset Default
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {[
+                  { id: 'xs', label: 'XS', px: '12px' },
+                  { id: 'sm', label: 'SM', px: '14px' },
+                  { id: 'base', label: 'Base', px: '16px' },
+                  { id: 'lg', label: 'LG', px: '18px' },
+                  { id: 'xl', label: 'XL', px: '20px' },
+                  { id: '2xl', label: '2XL', px: '24px' },
+                  { id: '3xl', label: '3xl', px: '30px' },
+                ].map((f) => {
+                  const active = s.fontSize === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => onChange('fontSize', f.id)}
+                      className={`py-1 px-1 rounded-lg border text-center transition-all flex flex-col items-center justify-center ${
+                        active
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-white font-semibold shadow-xs ring-1 ring-blue-500/20'
+                          : 'border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-neutral-700'
+                      }`}
+                    >
+                      <span className="text-[11px] font-medium">{f.label}</span>
+                      <span className="text-[9px] opacity-60 leading-none">{f.px}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {!s.fontSize && (
+                <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-1">
+                  Using section template default text size.
+                </p>
+              )}
+            </div>
+
+            {/* Section Text Alignment */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-[11px] font-medium text-slate-700 dark:text-neutral-300">
+                    Section Text Alignment
+                  </label>
+                  {viewport && (
+                    <span className="uppercase text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                      {viewport}
+                    </span>
+                  )}
+                </div>
+                {s.textAlign && (
+                  <button
+                    type="button"
+                    onClick={() => onChange('textAlign', undefined)}
+                    className="text-[10px] text-blue-500 hover:underline font-medium"
+                  >
+                    Reset Default
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { id: 'left', icon: <AlignLeft className="w-3.5 h-3.5" />, label: 'Left' },
+                  { id: 'center', icon: <AlignCenter className="w-3.5 h-3.5" />, label: 'Center' },
+                  { id: 'right', icon: <AlignRight className="w-3.5 h-3.5" />, label: 'Right' },
+                ].map((al) => {
+                  const active = s.textAlign === al.id;
+                  return (
+                    <button
+                      key={al.id}
+                      type="button"
+                      onClick={() => onChange('textAlign', al.id)}
+                      className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg border text-xs transition-colors ${
+                        active
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-white font-semibold'
+                          : 'border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400'
+                      }`}
+                    >
+                      {al.icon}
+                      <span>{al.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section Font Family */}
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 dark:text-neutral-400 mb-1.5">
+                Font Family
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { id: 'sans', label: 'Geist Sans' },
+                  { id: 'serif', label: 'Playfair Serif' },
+                  { id: 'mono', label: 'JetBrains Mono' },
+                  { id: 'space', label: 'Space Grotesk' },
+                ].map((f) => (
                   <button
                     key={f.id}
                     type="button"
-                    onClick={() => onChange('fontSize', f.id)}
-                    className={`py-1 text-[11px] rounded-lg border text-center transition-colors ${
-                      active
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-white font-semibold'
-                        : 'border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400'
+                    onClick={() => onChange('fontFamily', f.id)}
+                    className={`p-2 rounded-lg border text-left text-xs transition-colors ${
+                      (s.fontFamily || 'sans') === f.id
+                        ? 'border-slate-400 dark:border-neutral-400 bg-slate-200 dark:bg-neutral-800 text-slate-900 dark:text-white font-semibold'
+                        : 'border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-neutral-900/60 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     {f.label}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Element Text Alignment (if element) */}
-        {isElement && (
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 dark:text-neutral-400 mb-1.5">
-              Text Alignment
-            </label>
-            <div className="grid grid-cols-3 gap-1">
-              {[
-                { id: 'left', icon: <AlignLeft className="w-3.5 h-3.5" />, label: 'Left' },
-                { id: 'center', icon: <AlignCenter className="w-3.5 h-3.5" />, label: 'Center' },
-                { id: 'right', icon: <AlignRight className="w-3.5 h-3.5" />, label: 'Right' },
-              ].map((al) => {
-                const active = (s.textAlign || 'left') === al.id;
-                return (
-                  <button
-                    key={al.id}
-                    type="button"
-                    onClick={() => onChange('textAlign', al.id)}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg border text-xs transition-colors ${
-                      active
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-white font-semibold'
-                        : 'border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 text-slate-600 dark:text-neutral-400'
-                    }`}
-                  >
-                    {al.icon}
-                    <span>{al.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Container Font Family */}
-        {isContainer && (
-          <div>
-            <label className="block text-[11px] font-medium text-slate-600 dark:text-neutral-400 mb-1.5">
-              Font Family
-            </label>
-            <div className="grid grid-cols-2 gap-1.5">
-              {[
-                { id: 'sans', label: 'Geist Sans' },
-                { id: 'serif', label: 'Playfair Serif' },
-                { id: 'mono', label: 'JetBrains Mono' },
-                { id: 'space', label: 'Space Grotesk' },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => onChange('fontFamily', f.id)}
-                  className={`p-2 rounded-lg border text-left text-xs transition-colors ${
-                    (s.fontFamily || 'sans') === f.id
-                      ? 'border-slate-400 dark:border-neutral-400 bg-slate-200 dark:bg-neutral-800 text-slate-900 dark:text-white font-semibold'
-                      : 'border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-neutral-900/60 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          </>
         )}
       </div>
 

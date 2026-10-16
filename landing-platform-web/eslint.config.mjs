@@ -24,6 +24,7 @@ const eslintConfig = defineConfig([
       "react/no-unescaped-entities": "off",
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/immutability": "warn",
+      "react-hooks/purity": "warn",
     },
   },
   globalIgnores([
