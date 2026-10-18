@@ -41,6 +41,7 @@ import { PageSwitcherDropdown } from '@/components/builder/PageSwitcherDropdown'
 import { SaveStatusBadge } from '@/components/builder/SaveStatusBadge';
 import { NewPageModal } from '@/components/builder/NewPageModal';
 import { PublishModal } from '@/components/builder/PublishModal';
+import { FunnelFlowModal } from '@/components/builder/FunnelFlowModal';
 import { usePersistence } from '@/hooks/usePersistence';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -133,6 +134,7 @@ import {
   FileText,
   Component as ComponentIcon,
   Unlink,
+  Workflow,
 } from 'lucide-react';
 
 function TemplateColorPicker({
@@ -227,6 +229,7 @@ export default function PlatformDashboard() {
   const [pageName, setPageName] = useState('Storefront Page');
   const [isEditingPageName, setIsEditingPageName] = useState(false);
   const [isPageSettingsOpen, setIsPageSettingsOpen] = useState(false);
+  const [isFunnelFlowModalOpen, setIsFunnelFlowModalOpen] = useState(false);
   const [pageSlug, setPageSlug] = useState('home');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
@@ -2288,6 +2291,17 @@ export default function PlatformDashboard() {
             onDuplicatePage={persistence.duplicatePage}
             onDeletePage={persistence.deletePage}
           />
+
+          {/* Funnel Pipeline & Page Connection Modal Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsFunnelFlowModalOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50/70 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            title="Koneksi & Alur Antar Halaman (Funnel Flow)"
+          >
+            <Workflow className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            <span className="hidden md:inline">Alur Halaman</span>
+          </button>
 
           <button
             type="button"
@@ -5562,6 +5576,14 @@ export default function PlatformDashboard() {
           }
           await persistence.refreshPagesList();
         }}
+      />
+
+      {/* Milestone 7: Funnel Pipeline & Page-to-Page Connection Modal */}
+      <FunnelFlowModal
+        isOpen={isFunnelFlowModalOpen}
+        onClose={() => setIsFunnelFlowModalOpen(false)}
+        currentPageId={persistence.currentPageId}
+        onSelectPage={(id) => persistence.switchPage(id)}
       />
     </div>
   );

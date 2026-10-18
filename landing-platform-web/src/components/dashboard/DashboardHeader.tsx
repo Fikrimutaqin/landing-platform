@@ -12,6 +12,7 @@ import {
   Package,
   ReceiptText,
   LayoutTemplate,
+  Workflow,
 } from 'lucide-react';
 
 export function DashboardHeader() {
@@ -24,6 +25,12 @@ export function DashboardHeader() {
       href: '/dashboard',
       icon: LayoutDashboard,
       active: pathname === '/dashboard',
+    },
+    {
+      label: 'Alur Halaman (Funnel)',
+      href: '/dashboard/funnels',
+      icon: Workflow,
+      active: pathname.startsWith('/dashboard/funnels'),
     },
     {
       label: 'Produk',

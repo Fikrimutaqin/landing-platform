@@ -785,4 +785,50 @@ export interface Transaction {
   updatedAt: string;
 }
 
+// -------------------------------------------------------------
+// 10. FUNNEL PIPELINE & PAGE CONNECTION CONTRACTS
+// -------------------------------------------------------------
 
+export type FunnelStepType =
+  | 'SALES_PAGE'
+  | 'CHECKOUT'
+  | 'PAYMENT_INSTRUCTION'
+  | 'THANK_YOU'
+  | 'UPSELL'
+  | 'DOWNSELL'
+  | 'CUSTOM';
+
+export interface FunnelPageConnection {
+  sourcePageId: string;
+  sourceSlug: string;
+  targetPageId?: string;
+  targetSlug: string;
+  targetUrl: string; // e.g. /p/checkout-page
+  connectionType: 'PRIMARY_NEXT' | 'UPSELL_YES' | 'UPSELL_NO' | 'CUSTOM';
+  label?: string;
+}
+
+export interface FunnelPipelineStep {
+  id: string;
+  stepNumber: number;
+  name: string;
+  slug: string;
+  pageId?: string;
+  type: FunnelStepType;
+  description?: string;
+  nextStepSlug?: string;
+  nextStepUrl?: string;
+  status: 'ACTIVE' | 'DRAFT';
+  updatedAt?: string;
+}
+
+export interface FunnelPipeline {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string;
+  steps: FunnelPipelineStep[];
+  isDefault?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
