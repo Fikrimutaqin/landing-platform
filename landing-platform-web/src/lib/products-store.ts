@@ -1,4 +1,4 @@
-import { Product, CreateProductDto, ProductType } from '../../../shared/types';
+import { Product, CreateProductDto } from '../../../shared/types';
 
 const PRODUCTS_STORAGE_KEY = 'lp_merchant_products';
 
@@ -67,7 +67,7 @@ export class ProductsStore {
       sku: dto.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       stock: dto.type === 'PHYSICAL' ? (dto.stock !== undefined ? Number(dto.stock) : 100) : undefined,
       weight: dto.type === 'PHYSICAL' ? (dto.weight !== undefined ? Number(dto.weight) : 500) : undefined,
-      imageUrl: dto.imageUrl || (dto.type === 'DIGITAL' 
+      imageUrl: dto.imageUrl || (dto.type === 'DIGITAL'
         ? 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'
         : 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=800&q=80'),
       category: dto.category || (dto.type === 'DIGITAL' ? 'Produk Digital' : 'Produk Fisik'),

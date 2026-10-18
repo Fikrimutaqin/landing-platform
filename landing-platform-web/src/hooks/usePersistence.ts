@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { PageSummary, PageDocument, SaveStatus, DesignTokens, StyleClass, PageSeoMetadata } from '../../../shared/types';
+import { PageSummary, SaveStatus, DesignTokens, StyleClass, PageSeoMetadata } from '../../../shared/types';
 import { PagesApiClient } from '../lib/api-client';
 import { ALEX_TRAVIS_TEMPLATE } from '../components/templates/alex-travis-template';
 
