@@ -10,7 +10,8 @@ import {
   Columns,
   Type,
   Square,
-  Sparkles,
+  LayoutTemplate,
+  Tag,
   Image as ImageIcon,
   MousePointerClick,
   CreditCard,
@@ -66,7 +67,7 @@ export function NavigatorPanel({
     if (block.content?.alexSection) {
       switch (block.content.alexSection) {
         case 'hero':
-          return <Sparkles className="w-3.5 h-3.5 text-pink-500" />;
+          return <LayoutTemplate className="w-3.5 h-3.5 text-blue-500" />;
         case 'navbar':
           return <Folder className="w-3.5 h-3.5 text-blue-500" />;
         case 'pricing':
@@ -104,7 +105,7 @@ export function NavigatorPanel({
       case 'AspectRatio':
         return <ImageIcon className="w-3 h-3 text-purple-500" />;
       case 'Badge':
-        return <Sparkles className="w-3 h-3 text-pink-500" />;
+        return <Tag className="w-3 h-3 text-pink-500" />;
       default:
         return <Component className="w-3 h-3 text-slate-400 dark:text-neutral-500" />;
     }

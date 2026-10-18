@@ -15,7 +15,6 @@ import {
   Maximize2,
   WrapText,
   Sliders,
-  Sparkles,
 } from 'lucide-react';
 import { ContainerLayout, ResponsiveLayoutOverrides, DeviceViewport } from '../../../../shared/types';
 

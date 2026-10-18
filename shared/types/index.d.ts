@@ -55,6 +55,12 @@ export interface ShadcnComponentInstance {
     styles?: ElementStyles;
     classNames?: string[];
     children?: ShadcnComponentInstance[];
+    masterComponentId?: string;
+    isMasterInstance?: boolean;
+    overrides?: Record<string, {
+        props?: Record<string, any>;
+        styles?: Partial<ElementStyles>;
+    }>;
 }
 export type BlockType = 'CONTAINER' | 'NAVBAR' | 'HERO' | 'PRODUCT_SPOTLIGHT' | 'IMAGE' | 'CHECKOUT_FORM' | 'REVIEWS' | 'TIMER' | 'FEATURE_GRID' | 'FAQ' | 'FOOTER';
 export interface BlockStyles {
@@ -145,6 +151,12 @@ export interface BaseBlockProps {
     styles?: BlockStyles;
     classNames?: string[];
     layout?: ContainerLayout;
+    masterComponentId?: string;
+    isMasterInstance?: boolean;
+    overrides?: Record<string, {
+        props?: Record<string, any>;
+        styles?: Partial<ElementStyles>;
+    }>;
 }
 export interface ContainerBlockProps extends BaseBlockProps {
     type: 'CONTAINER';
@@ -381,3 +393,111 @@ export interface UpdatePageDraftDto {
     seoMetadata?: PageSeoMetadata;
 }
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+export type MasterComponentCategory = 'navigation' | 'hero' | 'cards' | 'cta' | 'footer' | 'general';
+export interface MasterComponent {
+    id: string;
+    projectId: string;
+    name: string;
+    description?: string;
+    category: MasterComponentCategory;
+    schemaVersion: number;
+    rootType: 'block' | 'component';
+    blockData?: any;
+    componentData?: ShadcnComponentInstance;
+    thumbnail?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+export interface CreateMasterComponentDto {
+    projectId: string;
+    name: string;
+    description?: string;
+    category?: MasterComponentCategory;
+    rootType: 'block' | 'component';
+    blockData?: any;
+    componentData?: ShadcnComponentInstance;
+}
+export interface UpdateMasterComponentDto {
+    name?: string;
+    description?: string;
+    category?: MasterComponentCategory;
+    blockData?: any;
+    componentData?: ShadcnComponentInstance;
+}
+export interface PublishedPageVersion {
+    id: string;
+    pageId: string;
+    versionNumber: number;
+    title: string;
+    slug: string;
+    blocks: any[];
+    tokens?: DesignTokens;
+    styleClasses?: StyleClass[];
+    seoMetadata?: PageSeoMetadata;
+    publishedBy?: string;
+    notes?: string;
+    createdAt: string;
+}
+export interface PublishPageDto {
+    notes?: string;
+    publishedBy?: string;
+}
+export interface RollbackPageDto {
+    versionId: string;
+}
+export interface PublicPageResponse {
+    id: string;
+    projectId: string;
+    title: string;
+    slug: string;
+    status: 'PUBLISHED';
+    blocks: any[];
+    tokens?: DesignTokens;
+    styleClasses?: StyleClass[];
+    seoMetadata?: PageSeoMetadata;
+    versionNumber: number;
+    publishedAt: string;
+}
+export type UserRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export interface AuthUser {
+    id: string;
+    email: string;
+    name: string;
+    role: UserRole;
+    organizationId: string;
+    organizationName?: string;
+    avatarUrl?: string;
+    createdAt?: string;
+}
+export interface Organization {
+    id: string;
+    name: string;
+    slug: string;
+    planTier: string;
+    createdAt: string;
+}
+export interface LoginDto {
+    email: string;
+    password: string;
+    rememberMe?: boolean;
+}
+export interface RegisterDto {
+    name: string;
+    email: string;
+    password: string;
+    organizationName: string;
+    planTier?: string;
+}
+export interface AuthResponse {
+    success: boolean;
+    token?: string;
+    user?: AuthUser;
+    organization?: Organization;
+    message?: string;
+}
+export interface UserProfileUpdateDto {
+    name?: string;
+    email?: string;
+    currentPassword?: string;
+    newPassword?: string;
+}

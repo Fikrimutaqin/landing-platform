@@ -482,6 +482,12 @@ export interface PageSeoMetadata {
   ogImage?: string;
   canonicalUrl?: string;
   keywords?: string;
+  // Per-Page Tracking & Analytics Pixels
+  facebookPixelId?: string;
+  tiktokPixelId?: string;
+  googleAnalyticsId?: string; // e.g. G-XXXXXXX
+  customHeadScripts?: string;
+  customBodyScripts?: string;
 }
 
 export interface PageDocument {
@@ -621,3 +627,159 @@ export interface PublicPageResponse {
   versionNumber: number;
   publishedAt: string;
 }
+
+// -------------------------------------------------------------
+// 9. AUTHENTICATION & MULTI-TENANCY CONTRACTS
+// -------------------------------------------------------------
+
+export type UserRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  organizationId: string;
+  organizationName?: string;
+  avatarUrl?: string;
+  createdAt?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  planTier: string;
+  createdAt: string;
+}
+
+export interface LoginDto {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface RegisterDto {
+  name: string;
+  email: string;
+  password: string;
+  organizationName: string;
+  planTier?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token?: string;
+  user?: AuthUser;
+  organization?: Organization;
+  message?: string;
+}
+
+export interface UserProfileUpdateDto {
+  name?: string;
+  email?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
+// -------------------------------------------------------------
+// 10. E-COMMERCE PRODUCTS & TRANSACTIONS CONTRACTS
+// -------------------------------------------------------------
+
+export type ProductType = 'DIGITAL' | 'PHYSICAL';
+export type ProductStatus = 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
+
+export interface DigitalAttachment {
+  type: 'download_url' | 'license_key' | 'redirect_link';
+  accessUrl: string;
+  instructions?: string;
+}
+
+export interface Product {
+  id: string;
+  organizationId: string;
+  name: string;
+  slug: string;
+  description: string;
+  type: ProductType;
+  price: number;
+  originalPrice?: number;
+  sku?: string;
+  stock?: number;
+  weight?: number; // in grams
+  imageUrl?: string;
+  category?: string;
+  status: ProductStatus;
+  digitalAttachment?: DigitalAttachment;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProductDto {
+  name: string;
+  slug?: string;
+  description: string;
+  type: ProductType;
+  price: number;
+  originalPrice?: number;
+  sku?: string;
+  stock?: number;
+  weight?: number;
+  imageUrl?: string;
+  category?: string;
+  status?: ProductStatus;
+  digitalAttachment?: DigitalAttachment;
+}
+
+export type PaymentMethod =
+  | 'QRIS'
+  | 'BCA_VA'
+  | 'MANDIRI_VA'
+  | 'BRI_VA'
+  | 'BNI_VA'
+  | 'EWALLET'
+  | 'COD';
+
+export type PaymentStatus = 'PAID' | 'PENDING' | 'EXPIRED' | 'REFUNDED';
+export type FulfillmentStatus = 'UNFULFILLED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'COMPLETED';
+
+export interface ShippingAddress {
+  recipientName: string;
+  phone: string;
+  street: string;
+  subdistrict: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  courier?: string;
+  trackingNumber?: string;
+}
+
+export interface Transaction {
+  id: string;
+  invoiceNumber: string;
+  organizationId: string;
+  pageId?: string;
+  productId: string;
+  productName: string;
+  productType: ProductType;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  quantity: number;
+  subtotal: number;
+  discount: number;
+  shippingFee: number;
+  totalAmount: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  fulfillmentStatus: FulfillmentStatus;
+  shippingAddress?: ShippingAddress;
+  digitalAccessDelivered?: boolean;
+  notes?: string;
+  paidAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+

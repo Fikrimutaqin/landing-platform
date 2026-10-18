@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'neutral' | 'success' | 'warning' | 'info';
+  variant?: 'neutral' | 'success' | 'warning' | 'info' | 'outline';
 }
 
 export function Badge({ className = '', variant = 'neutral', children, ...props }: BadgeProps) {
@@ -10,6 +10,7 @@ export function Badge({ className = '', variant = 'neutral', children, ...props 
     success: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800/60',
     warning: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60',
     info: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60',
+    outline: 'bg-transparent text-slate-600 border-slate-300 dark:text-neutral-400 dark:border-neutral-800',
   };
 
   return (

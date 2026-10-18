@@ -88,6 +88,11 @@ export function usePersistence({
             ogImage: seoMetadata?.ogImage,
             canonicalUrl: seoMetadata?.canonicalUrl,
             keywords: seoMetadata?.keywords,
+            facebookPixelId: seoMetadata?.facebookPixelId,
+            tiktokPixelId: seoMetadata?.tiktokPixelId,
+            googleAnalyticsId: seoMetadata?.googleAnalyticsId,
+            customHeadScripts: seoMetadata?.customHeadScripts,
+            customBodyScripts: seoMetadata?.customBodyScripts,
           },
         });
         setSaveStatus('saved');

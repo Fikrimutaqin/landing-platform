@@ -10,7 +10,6 @@ import {
   Trash2,
   X,
   Layers,
-  Sparkles,
   LayoutTemplate,
   CreditCard,
   Compass,

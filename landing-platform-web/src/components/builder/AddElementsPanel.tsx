@@ -8,7 +8,7 @@ import {
   Square,
   Type,
   MousePointerClick,
-  Sparkles,
+  Tag,
   Search,
   Component,
   FolderPlus,
@@ -179,7 +179,7 @@ export function AddElementsPanel({
                   type: 'Badge',
                   title: 'Badge / Pill',
                   desc: 'Compact highlight indicator',
-                  icon: <Sparkles className="w-3.5 h-3.5 text-pink-500" />,
+                  icon: <Tag className="w-3.5 h-3.5 text-slate-500 dark:text-neutral-400" />,
                   defaultProps: { label: 'New Release 2026', variant: 'default' },
                 },
                 {

@@ -28,6 +28,17 @@ export class PagesController {
     };
   }
 
+  @Delete('projects/:projectId/pages')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Clear all pages in a project' })
+  @ApiResponse({ status: 200, description: 'All pages cleared' })
+  clearAllPages() {
+    return {
+      success: true,
+      data: this.pagesService.clearAllPages(),
+    };
+  }
+
   @Get('pages/:id')
   @ApiOperation({ summary: 'Get full page document by ID' })
   @ApiResponse({ status: 200, description: 'Full PageDocument object' })

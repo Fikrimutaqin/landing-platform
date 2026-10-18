@@ -13,7 +13,6 @@ import {
   Search,
   ExternalLink,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 
 interface PageSwitcherDropdownProps {

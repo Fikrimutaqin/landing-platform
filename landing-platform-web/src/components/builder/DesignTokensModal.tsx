@@ -5,7 +5,6 @@ import {
   Palette,
   Type,
   Square,
-  Sparkles,
   Check,
   RotateCcw,
   X,
@@ -158,7 +157,7 @@ export function DesignTokensModal({
                 : 'border-transparent text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <Palette className="w-4 h-4 text-blue-500" />
             <span>Preset Themes</span>
           </button>
         </div>
@@ -229,7 +228,7 @@ export function DesignTokensModal({
                       onChange={(e) => handleFontChange('heading', e.target.value)}
                       className="w-full text-xs p-2.5 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white"
                     >
-                      <option value="sans">Inter / Modern Sans</option>
+                      <option value="sans">Poppins (Default Sans)</option>
                       <option value="space">Space Grotesk (Tech / Editorial)</option>
                       <option value="serif">Playfair / Elegant Serif</option>
                       <option value="mono">JetBrains / Developer Mono</option>
@@ -249,7 +248,7 @@ export function DesignTokensModal({
                       onChange={(e) => handleFontChange('body', e.target.value)}
                       className="w-full text-xs p-2.5 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white"
                     >
-                      <option value="sans">Inter / Modern Sans</option>
+                      <option value="sans">Poppins (Default Sans)</option>
                       <option value="jakarta">Plus Jakarta Sans</option>
                       <option value="mono">JetBrains Mono</option>
                       <option value="serif">Playfair Display Serif</option>
@@ -393,13 +392,13 @@ export function DesignTokensModal({
                       color: draftTokens.colors.primary,
                     }}
                   >
-                    <Sparkles className="w-3 h-3" /> Batch 04 Release
+                    Katalog Storefront
                   </span>
                   <span
                     className="text-[10px] font-semibold"
                     style={{ color: draftTokens.colors.accent }}
                   >
-                    ● 99.98% Conversion Uptime
+                    ● Aktif
                   </span>
                 </div>
 

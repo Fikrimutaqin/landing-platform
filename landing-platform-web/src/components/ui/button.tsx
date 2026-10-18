@@ -13,17 +13,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-slate-900 text-white hover:bg-slate-800 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-white shadow-sm active:scale-[0.99] font-semibold',
+          'bg-blue-600 text-white hover:bg-blue-500 shadow-xs active:scale-[0.99] font-semibold transition-all',
         primary:
-          'bg-blue-600 text-white hover:bg-blue-500 shadow-sm active:scale-[0.99] font-semibold',
+          'bg-blue-600 text-white hover:bg-blue-500 shadow-xs active:scale-[0.99] font-semibold transition-all',
+        dark:
+          'bg-slate-900 text-white hover:bg-slate-800 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-white shadow-xs active:scale-[0.99] font-semibold',
         secondary:
-          'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:border-neutral-800 shadow-sm active:scale-[0.99]',
+          'bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:border-neutral-800 shadow-xs active:scale-[0.99]',
         outline:
-          'border border-slate-300 dark:border-neutral-800 bg-transparent text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-900 dark:hover:text-white active:scale-[0.99]',
+          'border border-slate-200 dark:border-neutral-800 bg-transparent text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 hover:text-slate-900 dark:hover:text-white active:scale-[0.99]',
         ghost:
           'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-900/80',
         danger:
-          'bg-rose-600 text-white hover:bg-rose-500 shadow-sm active:scale-[0.99]',
+          'bg-rose-600 text-white hover:bg-rose-500 shadow-xs active:scale-[0.99]',
       },
       size: {
         default: 'h-9 px-4 py-2',

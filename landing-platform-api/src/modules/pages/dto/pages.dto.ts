@@ -52,6 +52,10 @@ export class PublishPageDto {
   @IsString()
   @IsOptional()
   publishedBy?: string;
+
+  @IsString()
+  @IsOptional()
+  customSlug?: string;
 }
 
 export class RollbackPageDto {

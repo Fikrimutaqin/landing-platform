@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Rocket,
   Globe,
   ExternalLink,
   Copy,
   Check,
+  CheckCircle2,
   History,
   RotateCcw,
-  Sparkles,
   X,
   Search,
   Share2,
@@ -32,6 +31,7 @@ interface PublishModalProps {
   pageStatus: 'DRAFT' | 'PUBLISHED';
   seoMetadata: PageSeoMetadata;
   onUpdateSeo: (seo: PageSeoMetadata) => void;
+  onSaveBeforePublish?: () => Promise<void>;
   onPublishSuccess?: (publishedData: any) => void;
   onRollbackSuccess?: (restoredPage: any) => void;
 }
@@ -45,6 +45,7 @@ export function PublishModal({
   pageStatus,
   seoMetadata,
   onUpdateSeo,
+  onSaveBeforePublish,
   onPublishSuccess,
   onRollbackSuccess,
 }: PublishModalProps) {
@@ -68,7 +69,7 @@ export function PublishModal({
   });
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-  const publicUrl = `${origin}/p/${pageSlug}`;
+  const publicUrl = `${origin}/p/${pageSlug.replace(/^\/+/, '')}`;
 
   useEffect(() => {
     if (isOpen) {
@@ -97,6 +98,11 @@ export function PublishModal({
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
+      // 0. Ensure current canvas blocks & styles are saved
+      if (onSaveBeforePublish) {
+        await onSaveBeforePublish();
+      }
+
       // 1. Sync SEO metadata first
       onUpdateSeo(localSeo);
 
@@ -144,7 +150,7 @@ export function PublishModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-neutral-800 bg-slate-50/80 dark:bg-neutral-950/80">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-900 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-              <Rocket className="w-4 h-4" />
+              <Globe className="w-4 h-4" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
@@ -182,7 +188,7 @@ export function PublishModal({
                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white'
             }`}
           >
-            <Rocket className="w-3.5 h-3.5" />
+            <Globe className="w-3.5 h-3.5" />
             <span>Publish Storefront</span>
           </button>
           <button
@@ -268,7 +274,7 @@ export function PublishModal({
 
               {/* Snapshot Info Card */}
               <div className="p-3.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 text-xs text-blue-800 dark:text-blue-300 flex items-start gap-2.5">
-                <Sparkles className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div className="leading-relaxed text-[11px]">
                   Publishing converts your current draft into a production version snapshot. Visitors navigating to{' '}
                   <span className="font-mono font-bold">/p/{pageSlug}</span> will immediately see the updated storefront.
@@ -486,7 +492,7 @@ export function PublishModal({
                 </>
               ) : (
                 <>
-                  <Rocket className="w-3.5 h-3.5 mr-1.5" />
+                  <Globe className="w-3.5 h-3.5 mr-1.5" />
                   <span>Publish Now</span>
                 </>
               )}

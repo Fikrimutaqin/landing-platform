@@ -19,7 +19,6 @@ import {
   Monitor,
   Tablet,
   Smartphone,
-  Sparkles,
 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { ImageSourcePicker } from './ImageSourcePicker';
@@ -146,7 +145,7 @@ export function StylesPanel({
           className="w-full flex items-center justify-between p-2.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-950/40 transition-colors"
         >
           <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <Palette className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span className="font-semibold text-xs">Design System Tokens</span>
           </div>
           <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">Configure</span>
@@ -815,7 +814,7 @@ export function StylesPanel({
               </label>
               <div className="grid grid-cols-2 gap-1.5">
                 {[
-                  { id: 'sans', label: 'Geist Sans' },
+                  { id: 'sans', label: 'Poppins (Sans)' },
                   { id: 'serif', label: 'Playfair Serif' },
                   { id: 'mono', label: 'JetBrains Mono' },
                   { id: 'space', label: 'Space Grotesk' },

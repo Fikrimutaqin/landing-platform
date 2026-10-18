@@ -62,20 +62,21 @@ export class PagesApiClient {
     } catch (err) {
       console.warn('API getProjectPages unreachable, reading local storage:', err);
       const localList = LocalPersistence.getIndex();
-      if (localList.length > 0) return localList;
-      return [
-        {
-          id: 'page_home',
-          projectId: 'proj_default',
-          title: 'Storefront Home',
-          slug: 'home',
-          status: 'PUBLISHED',
-          isDefault: true,
-          blockCount: 0,
-          updatedAt: new Date().toISOString(),
-        },
-      ];
+      return localList;
     }
+  }
+
+  /**
+   * Delete and clear all project pages
+   */
+  static async clearProjectPages(projectId: string = 'proj_default'): Promise<boolean> {
+    try {
+      await request(`/projects/${projectId}/pages`, { method: 'DELETE' });
+    } catch (err) {
+      console.warn('API clearProjectPages unreachable, clearing locally:', err);
+    }
+    LocalPersistence.clearAll();
+    return true;
   }
 
   /**
@@ -307,17 +308,31 @@ export class PagesApiClient {
    * Fetch live public page for storefront visitor rendering
    */
   static async getPublicPage(slug: string): Promise<any> {
+    const cleanSlug = slug.toLowerCase().replace(/^\/+/, '');
     try {
-      return await request<any>(`/public/pages/${slug}`);
+      const res = await request<any>(`/public/pages/${cleanSlug}`);
+      if (res) return res;
     } catch (err) {
-      console.warn(`API getPublicPage for slug '${slug}' unreachable, searching local persistence:`, err);
-      const allSummaries = LocalPersistence.getIndex();
-      const match = allSummaries.find((p) => p.slug === slug && p.status === 'PUBLISHED');
-      if (match) {
-        const full = LocalPersistence.loadDraft(match.id);
-        if (full) return full;
-      }
-      throw err;
+      console.warn(`API getPublicPage for slug '${cleanSlug}' unreachable, searching local persistence:`, err);
     }
+
+    const allSummaries = LocalPersistence.getIndex();
+    const match = allSummaries.find(
+      (p) =>
+        p.slug.toLowerCase().replace(/^\/+/, '') === cleanSlug ||
+        p.id === cleanSlug ||
+        p.id === `page_${cleanSlug.replace(/-/g, '_')}`
+    );
+    if (match) {
+      const full = LocalPersistence.loadDraft(match.id);
+      if (full) return full;
+    }
+
+    const direct =
+      LocalPersistence.loadDraft(`page_${cleanSlug.replace(/-/g, '_')}`) ||
+      LocalPersistence.loadDraft(cleanSlug);
+    if (direct) return direct;
+
+    throw new Error(`Halaman dengan slug '${cleanSlug}' belum dipublikasikan.`);
   }
 }

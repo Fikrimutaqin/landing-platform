@@ -6,7 +6,6 @@ import {
   Plus,
   X,
   Layers,
-  Sparkles,
   ChevronDown,
   Info,
   Check,
@@ -187,7 +186,7 @@ export function ClassSelectorManager({
               <span>
                 Create new class: <strong className="font-mono">.{normalizedQuery}</strong>
               </span>
-              <Sparkles className="w-3 h-3 text-amber-500" />
+              <Plus className="w-3 h-3 text-blue-600 dark:text-blue-400" />
             </button>
           )}
 

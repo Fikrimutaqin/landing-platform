@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { FileText, LayoutTemplate, Sparkles, Layers, ArrowRight, X } from 'lucide-react';
+import { FileText, LayoutTemplate, Layers, ArrowRight, X, Check } from 'lucide-react';
 
 interface NewPageModalProps {
   isOpen: boolean;
@@ -92,7 +92,7 @@ export function NewPageModal({
       id: 'alex_full',
       title: 'Alex Travis Storefront',
       desc: 'Full 14-section showcase page with dark modern theme.',
-      icon: <Sparkles className="w-4 h-4 text-amber-500" />,
+      icon: <FileText className="w-4 h-4 text-indigo-500" />,
     },
   ];
 
@@ -182,7 +182,7 @@ export function NewPageModal({
                         <p className="text-[11px] text-slate-500 dark:text-neutral-400">{tmpl.desc}</p>
                       </div>
                     </div>
-                    {isSelected && <span className="text-blue-600 dark:text-blue-400 text-xs font-bold">✓</span>}
+                    {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
                   </div>
                 );
               })}

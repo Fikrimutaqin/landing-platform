@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Check, Camera, Link as LinkIcon } from 'lucide-react';
+import { ArrowRight, Check, Camera, Link as LinkIcon, ShoppingCart } from 'lucide-react';
 import { BlockItem } from '../../builder/ElementorSidebar';
 import { DynamicIcon } from '../../builder/IconPicker';
 import { ContainerLayout, BlockStyles } from '../../../../../shared/types';
@@ -581,7 +581,7 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
               <DynamicIcon
                 name={content.actionIcon || 'ShoppingCart'}
                 className="w-4 h-4"
-                fallback={<span>{content.actionIcon || '🛒'}</span>}
+                fallback={<ShoppingCart className="w-4 h-4" />}
               />
               <span className="absolute -top-1 -right-1 text-[9px] bg-[#111] dark:bg-white text-white dark:text-[#111] px-1 rounded-full font-mono">
                 <InlineText

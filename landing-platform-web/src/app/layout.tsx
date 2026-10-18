@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -13,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
   title: "Landing Platform - Builder",
@@ -23,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${poppins.variable} ${geistMono.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
       <head>
@@ -49,8 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col transition-colors duration-200" suppressHydrationWarning>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className="min-h-full flex flex-col font-sans transition-colors duration-200" suppressHydrationWarning>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -24,7 +24,6 @@ import {
   Send,
   Bell,
   Star,
-  Sparkles,
   Zap,
   Flame,
   Shield,
@@ -79,7 +78,6 @@ export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }
   Send,
   Bell,
   Star,
-  Sparkles,
   Zap,
   Flame,
   Shield,
@@ -174,7 +172,7 @@ export function IconPicker({
         >
           <div className="flex items-center gap-2 truncate">
             <div className="w-5 h-5 rounded flex items-center justify-center bg-slate-100 dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shrink-0">
-              <DynamicIcon name={value} className="w-3.5 h-3.5" fallback={<span>{value || '★'}</span>} />
+              <DynamicIcon name={value} className="w-3.5 h-3.5" fallback={<span>{value || '•'}</span>} />
             </div>
             <span className="font-mono text-[11px] truncate">{value || 'None'}</span>
           </div>
@@ -198,7 +196,7 @@ export function IconPicker({
               <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-neutral-800">
                 <input
                   type="text"
-                  placeholder="Or custom emoji (e.g. 🛒, ⚡)"
+                  placeholder="Custom icon name (e.g. Tag, Check)"
                   value={value && !ICON_MAP[value] ? value : ''}
                   onChange={(e) => onChange(e.target.value)}
                   className="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-100"

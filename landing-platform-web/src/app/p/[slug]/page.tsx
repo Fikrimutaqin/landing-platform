@@ -23,12 +23,13 @@ async function fetchPageData(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const page = await fetchPageData(slug);
+  const cleanSlug = decodeURIComponent(slug || '').replace(/^\/+/, '').trim().toLowerCase();
+  const page = await fetchPageData(cleanSlug);
 
   const title =
     page?.seoMetadata?.metaTitle ||
     page?.title ||
-    (slug === 'home' ? 'Alex Travis — Personal Portfolio & Creative Direction' : `Page - ${slug}`);
+    (cleanSlug === 'home' || cleanSlug === '' ? 'Storefront Home' : `Halaman - ${cleanSlug}`);
   const description =
     page?.seoMetadata?.metaDescription ||
     'High-converting landing page crafted with Visual Funnel Platform.';
@@ -55,7 +56,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublicPage({ params }: Props) {
   const { slug } = await params;
-  const initialData = await fetchPageData(slug);
+  const cleanSlug = decodeURIComponent(slug || '').replace(/^\/+/, '').trim().toLowerCase();
+  const initialData = await fetchPageData(cleanSlug);
 
-  return <PublicStorefrontClient initialData={initialData} slug={slug} />;
+  return <PublicStorefrontClient initialData={initialData} slug={cleanSlug} />;
 }

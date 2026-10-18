@@ -116,6 +116,34 @@ export function BlockLibraryModal({
       icon: <LayoutTemplate className="w-5 h-5 text-slate-700 dark:text-neutral-300" />,
       category: 'Full Templates',
     },
+    {
+      templateKey: 'sales_page_full',
+      title: '1. Landing Page Jualan (Sales Funnel)',
+      description: 'Full sales page with hero headline, timer urgency, spotlight produk, ulasan pelanggan, FAQ, dan checkout.',
+      icon: <Layout className="w-5 h-5 text-blue-500" />,
+      category: 'Full Templates',
+    },
+    {
+      templateKey: 'checkout_page_full',
+      title: '2. Page Checkout (Form Pemesanan)',
+      description: 'Halaman checkout form 1-page frictionless dengan alamat pengiriman / akses email dan kupon promo.',
+      icon: <CreditCard className="w-5 h-5 text-purple-500" />,
+      category: 'Full Templates',
+    },
+    {
+      templateKey: 'payment_page_full',
+      title: '3. Page Payment (Instruksi QRIS & VA)',
+      description: 'Instruksi pembayaran Xendit QRIS dinamis & nomor Virtual Account dengan countdown 15 menit.',
+      icon: <Box className="w-5 h-5 text-amber-500" />,
+      category: 'Full Templates',
+    },
+    {
+      templateKey: 'success_page_full',
+      title: '4. Success / Thank You Page',
+      description: 'Konfirmasi order berhasil dengan tombol download materi digital atau estimasi pengiriman kurir fisik.',
+      icon: <Shield className="w-5 h-5 text-emerald-500" />,
+      category: 'Full Templates',
+    },
   ];
 
   const categories = ['All', 'Full Templates', 'Layout Containers', 'Section Presets'];

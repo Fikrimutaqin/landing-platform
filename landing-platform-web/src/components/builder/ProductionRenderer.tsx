@@ -30,6 +30,8 @@ import { ReviewsBlock } from '../blocks/ReviewsBlock';
 import { FaqBlock } from '../blocks/FaqBlock';
 import { FooterBlock } from '../blocks/FooterBlock';
 import { CheckoutFormBlock } from '../blocks/CheckoutFormBlock';
+import { TimerBlock } from '../blocks/TimerBlock';
+import { ImageBlock } from '../blocks/ImageBlock';
 
 interface ProductionRendererProps {
   blocks: any[];
@@ -209,6 +211,38 @@ export function ProductionRenderer({
         return <FaqBlock key={block.id} styles={block.styles} />;
       case 'FOOTER':
         return <FooterBlock key={block.id} styles={block.styles} />;
+      case 'CHECKOUT_FORM':
+        return (
+          <div key={block.id} className="py-8 px-4 max-w-xl mx-auto w-full">
+            <CheckoutFormBlock
+              productId={block.content?.productId}
+              productTitle={block.content?.productTitle || block.content?.formTitle}
+              amount={block.content?.amount || block.content?.price}
+              productType={block.content?.productType}
+              styles={block.styles}
+            />
+          </div>
+        );
+      case 'TIMER':
+        return (
+          <div key={block.id} className="max-w-xl mx-auto w-full px-4 py-2">
+            <TimerBlock
+              urgencyText={block.content?.urgencyText || 'Promo Khusus Terbatas Berakhir Dalam:'}
+              styles={block.styles}
+            />
+          </div>
+        );
+      case 'IMAGE':
+        return (
+          <ImageBlock
+            key={block.id}
+            imageUrl={block.content?.imageUrl || block.content?.src}
+            altText={block.content?.altText || block.content?.alt}
+            caption={block.content?.caption}
+            aspectRatio={block.content?.aspectRatio || '16:9'}
+            styles={block.styles}
+          />
+        );
       default:
         return null;
     }

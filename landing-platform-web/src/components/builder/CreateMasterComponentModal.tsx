@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { MasterComponentCategory } from '../../../../shared/types';
-import { Component, Sparkles, X, Layers, Check } from 'lucide-react';
+import { Component, X, Layers, Check } from 'lucide-react';
 
 interface CreateMasterComponentModalProps {
   isOpen: boolean;
@@ -131,7 +131,7 @@ export function CreateMasterComponentModal({
 
           {/* Explanation badge */}
           <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 flex items-start gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <Component className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <p className="text-[11px] text-emerald-800 dark:text-emerald-300 leading-relaxed">
               When saved, this element becomes a <strong>Linked Master Symbol</strong>. Any instances you insert on other pages will inherit updates to this master component, while allowing per-instance content overrides.
             </p>

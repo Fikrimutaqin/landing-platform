@@ -73,4 +73,20 @@ export class LocalPersistence {
       console.warn('LocalStorage delete failed:', e);
     }
   }
+
+  static clearAll(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith(LOCAL_STORAGE_PREFIX) || key === LOCAL_STORAGE_INDEX)) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {
+      console.warn('LocalStorage clearAll failed:', e);
+    }
+  }
 }

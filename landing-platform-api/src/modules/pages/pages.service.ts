@@ -61,73 +61,13 @@ export class PagesService {
   }
 
   private seedInitialPages() {
-    const defaultProjectId = 'proj_default';
-    const homePage: PageDocument = {
-      schemaVersion: 1,
-      id: 'page_home',
-      projectId: defaultProjectId,
-      title: 'Storefront Home',
-      slug: 'home',
-      status: 'PUBLISHED',
-      blocks: [],
-      seoMetadata: {
-        metaTitle: 'Alex Travis — Personal Portfolio & Creative Direction',
-        metaDescription: 'High-performance visual portfolio and creative direction services.',
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    // Zero dummy pages: clean starting state for end-to-end testing
+  }
 
-    const pricingPage: PageDocument = {
-      schemaVersion: 1,
-      id: 'page_pricing',
-      projectId: defaultProjectId,
-      title: 'Pricing & Packages',
-      slug: 'pricing',
-      status: 'DRAFT',
-      blocks: [],
-      seoMetadata: {
-        metaTitle: 'Pricing & Packages — Alex Travis',
-        metaDescription: 'Transparent pricing packages for brands and creators.',
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    const checkoutPage: PageDocument = {
-      schemaVersion: 1,
-      id: 'page_checkout',
-      projectId: defaultProjectId,
-      title: 'Order Checkout',
-      slug: 'checkout',
-      status: 'DRAFT',
-      blocks: [],
-      seoMetadata: {
-        metaTitle: 'Complete Your Order',
-        metaDescription: 'Secure 1-click checkout powered by Xendit.',
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    this.pagesStore.set(homePage.id, homePage);
-    this.pagesStore.set(pricingPage.id, pricingPage);
-    this.pagesStore.set(checkoutPage.id, checkoutPage);
-
-    this.versionsStore.set(homePage.id, [
-      {
-        id: 'ver_init_home_v1',
-        pageId: homePage.id,
-        versionNumber: 1,
-        title: homePage.title,
-        slug: homePage.slug,
-        blocks: [],
-        seoMetadata: homePage.seoMetadata,
-        publishedBy: 'System Seed',
-        notes: 'Initial production baseline v1',
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+  clearAllPages(): boolean {
+    this.pagesStore.clear();
+    this.versionsStore.clear();
+    return true;
   }
 
   getPagesByProject(projectId: string): PageSummary[] {
@@ -189,12 +129,31 @@ export class PagesService {
   }
 
   updatePageDraft(id: string, dto: UpdatePageDraftDto): PageDocument {
-    const page = this.getPageById(id);
+    let page = this.pagesStore.get(id);
+
+    if (!page) {
+      page = {
+        schemaVersion: 1,
+        id,
+        projectId: 'proj_default',
+        title: dto.title || 'Storefront Page',
+        slug: (dto.slug || id.replace('page_', '')).replace(/^\/+/, ''),
+        status: 'DRAFT',
+        blocks: dto.blocks || [],
+        tokens: dto.tokens,
+        styleClasses: dto.styleClasses,
+        seoMetadata: dto.seoMetadata || {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.pagesStore.set(id, page);
+      return page;
+    }
 
     const updated: PageDocument = {
       ...page,
       title: dto.title !== undefined ? dto.title : page.title,
-      slug: dto.slug !== undefined ? dto.slug : page.slug,
+      slug: dto.slug !== undefined ? dto.slug.replace(/^\/+/, '') : page.slug,
       blocks: dto.blocks !== undefined ? dto.blocks : page.blocks,
       tokens: dto.tokens !== undefined ? dto.tokens : page.tokens,
       styleClasses: dto.styleClasses !== undefined ? dto.styleClasses : page.styleClasses,
@@ -236,7 +195,23 @@ export class PagesService {
   }
 
   publishPage(id: string, notes?: string, publishedBy?: string): { page: PageDocument; version: PublishedPageVersion } {
-    const page = this.getPageById(id);
+    let page = this.pagesStore.get(id);
+
+    if (!page) {
+      page = {
+        schemaVersion: 1,
+        id,
+        projectId: 'proj_default',
+        title: 'Storefront Page',
+        slug: id.replace('page_', '').replace(/_/g, '-'),
+        status: 'PUBLISHED',
+        blocks: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.pagesStore.set(id, page);
+    }
+
     const existingVersions = this.versionsStore.get(id) || [];
     const versionNumber = (existingVersions[0]?.versionNumber || 0) + 1;
 
@@ -267,7 +242,8 @@ export class PagesService {
   }
 
   getPageVersions(pageId: string): PublishedPageVersion[] {
-    this.getPageById(pageId); // Validates existence
+    const page = this.pagesStore.get(pageId);
+    if (!page) return [];
     return this.versionsStore.get(pageId) || [];
   }
 
@@ -294,9 +270,12 @@ export class PagesService {
   }
 
   getPublicPageBySlug(slug: string): any {
-    const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+    const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/^\/+/, '');
     const page = Array.from(this.pagesStore.values()).find(
-      (p) => p.slug === cleanSlug && p.status === 'PUBLISHED',
+      (p) =>
+        (p.slug.toLowerCase().replace(/^\/+/, '') === cleanSlug) ||
+        (p.id === `page_${cleanSlug.replace(/-/g, '_')}`) ||
+        (p.id === cleanSlug),
     );
 
     if (!page) {
@@ -309,10 +288,10 @@ export class PagesService {
     return {
       id: page.id,
       projectId: page.projectId,
-      title: page.title,
-      slug: page.slug,
+      title: latestVersion?.title || page.title,
+      slug: latestVersion?.slug || page.slug,
       status: 'PUBLISHED',
-      blocks: latestVersion?.blocks || page.blocks,
+      blocks: (latestVersion?.blocks && latestVersion.blocks.length > 0) ? latestVersion.blocks : page.blocks,
       tokens: latestVersion?.tokens || page.tokens,
       styleClasses: latestVersion?.styleClasses || page.styleClasses,
       seoMetadata: latestVersion?.seoMetadata || page.seoMetadata,
