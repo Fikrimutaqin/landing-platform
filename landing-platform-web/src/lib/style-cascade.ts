@@ -4,7 +4,6 @@ import {
   StyleClass,
   DesignTokens,
   DeviceViewport,
-  ResponsiveStyleOverrides,
 } from '../../../shared/types';
 import { DEFAULT_DESIGN_TOKENS } from './design-tokens';
 
