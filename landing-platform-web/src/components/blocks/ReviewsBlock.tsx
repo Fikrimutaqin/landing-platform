@@ -40,25 +40,38 @@ export function ReviewsBlock({ styles }: ReviewsBlockProps) {
     jakarta: 'font-sans',
   }[styles?.fontFamily || 'sans'];
 
+  const isDarkBg =
+    !styles?.backgroundColor ||
+    styles?.backgroundColor?.includes('#0') ||
+    styles?.backgroundColor?.includes('#1') ||
+    styles?.backgroundColor?.includes('black') ||
+    styles?.backgroundColor?.includes('neutral-9');
+
+  const headingColor = styles?.textColor || (isDarkBg ? '#ffffff' : '#0f172a');
+  const subtextColor = isDarkBg ? '#a1a1aa' : '#64748b';
+  const cardBg = styles?.backgroundColor ? (isDarkBg ? '#0c0d12' : '#ffffff') : '#0a0b0f';
+  const cardBorder = isDarkBg ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
+
   return (
-    <section className={`space-y-6 ${fontClass}`}>
+    <section className={`py-8 px-4 max-w-6xl mx-auto space-y-6 ${fontClass}`}>
       <div className="text-center space-y-1.5">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: headingColor }}>
           Verified Merchant Evaluations
         </h2>
-        <p className="text-xs text-neutral-400">
+        <p className="text-xs" style={{ color: subtextColor }}>
           Independent merchants scaling automated direct-to-consumer funnels.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {reviews.map((item, idx) => (
           <div
             key={idx}
-            className="rounded-xl border border-neutral-800/80 p-5 flex flex-col justify-between space-y-4 hover:border-neutral-700 transition-colors"
+            className="rounded-2xl border p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md transition-shadow"
             style={{
-              backgroundColor: styles?.backgroundColor || '#0a0b0f',
-              color: styles?.textColor || '#ffffff',
+              backgroundColor: cardBg,
+              color: headingColor,
+              borderColor: cardBorder,
             }}
           >
             <div className="space-y-3">
@@ -72,12 +85,12 @@ export function ReviewsBlock({ styles }: ReviewsBlockProps) {
               </p>
             </div>
 
-            <div className="pt-3 border-t border-neutral-900 flex items-center justify-between text-xs">
+            <div className="pt-3 border-t border-slate-200 dark:border-neutral-800/80 flex items-center justify-between text-xs">
               <div>
                 <div className="font-semibold text-xs">{item.name}</div>
                 <div className="text-[11px] opacity-60">{item.store}</div>
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
+              <div className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
                 <CheckCircle2 className="w-3 h-3" />
                 <span>Verified</span>
               </div>

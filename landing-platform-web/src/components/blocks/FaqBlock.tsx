@@ -37,39 +37,60 @@ export function FaqBlock({ styles }: FaqBlockProps) {
     jakarta: 'font-sans',
   }[styles?.fontFamily || 'sans'];
 
+  const isDarkBg =
+    !styles?.backgroundColor ||
+    styles?.backgroundColor?.includes('#0') ||
+    styles?.backgroundColor?.includes('#1') ||
+    styles?.backgroundColor?.includes('black') ||
+    styles?.backgroundColor?.includes('neutral-9');
+
+  const headingColor = styles?.textColor || (isDarkBg ? '#ffffff' : '#0f172a');
+  const subtextColor = isDarkBg ? '#a1a1aa' : '#64748b';
+  const itemBg = styles?.backgroundColor ? (isDarkBg ? '#0c0d12' : '#ffffff') : '#0a0b0f';
+  const itemBorder = isDarkBg ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
+
   return (
-    <section className={`max-w-2xl mx-auto space-y-4 ${fontClass}`}>
+    <section className={`max-w-2xl mx-auto py-8 px-4 space-y-4 ${fontClass}`}>
       <div className="text-center space-y-1 mb-5">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-          Architecture & Operations FAQ
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: headingColor }}>
+          Pertanyaan Umum (FAQ)
         </h2>
-        <p className="text-xs text-neutral-400">Technical specifications and settlement mechanics.</p>
+        <p className="text-xs" style={{ color: subtextColor }}>
+          Informasi seputar cara pemesanan, pembayaran, dan pengiriman produk.
+        </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {faqs.map((faq, idx) => {
           const isOpen = openIdx === idx;
           return (
             <div
               key={idx}
-              className="rounded-xl border border-neutral-800 overflow-hidden"
+              className="rounded-xl border overflow-hidden transition-all shadow-xs"
               style={{
-                backgroundColor: styles?.backgroundColor || '#0a0b0f',
-                color: styles?.textColor || '#ffffff',
+                backgroundColor: itemBg,
+                color: headingColor,
+                borderColor: itemBorder,
               }}
             >
               <button
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
-                className="w-full p-4 text-left flex items-center justify-between text-xs sm:text-sm font-medium hover:opacity-80 transition-opacity"
+                className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between text-xs sm:text-sm font-semibold hover:opacity-85 transition-opacity cursor-pointer"
               >
-                <span>{faq.q}</span>
+                <span className="pr-2">{faq.q}</span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 opacity-60 transition-transform ${isOpen ? 'rotate-180 opacity-100' : ''}`}
+                  className={`w-4 h-4 opacity-60 transition-transform shrink-0 ${isOpen ? 'rotate-180 opacity-100 text-blue-600' : ''}`}
                 />
               </button>
               {isOpen && (
-                <div className="px-4 pb-4 pt-1 text-xs opacity-85 leading-relaxed border-t border-neutral-900 bg-neutral-900/30">
+                <div
+                  className="px-3.5 sm:px-4 pb-4 pt-1 text-xs opacity-85 leading-relaxed border-t"
+                  style={{
+                    borderColor: itemBorder,
+                    backgroundColor: isDarkBg ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
+                  }}
+                >
                   {faq.a}
                 </div>
               )}

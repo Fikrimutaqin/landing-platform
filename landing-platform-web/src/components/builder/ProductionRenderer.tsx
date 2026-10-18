@@ -30,6 +30,9 @@ import { ReviewsBlock } from '../blocks/ReviewsBlock';
 import { FaqBlock } from '../blocks/FaqBlock';
 import { FooterBlock } from '../blocks/FooterBlock';
 import { CheckoutFormBlock } from '../blocks/CheckoutFormBlock';
+import { ProductCatalogBlock } from '../blocks/ProductCatalogBlock';
+import { PaymentInstructionBlock } from '../blocks/PaymentInstructionBlock';
+import { SuccessPageBlock } from '../blocks/SuccessPageBlock';
 import { TimerBlock } from '../blocks/TimerBlock';
 import { ImageBlock } from '../blocks/ImageBlock';
 
@@ -171,7 +174,17 @@ export function ProductionRenderer({
     // 3. Legacy Standard Funnel Blocks
     switch (block.type as BlockType) {
       case 'NAVBAR':
-        return <NavbarBlock key={block.id} styles={block.styles} />;
+        return (
+          <NavbarBlock
+            key={block.id}
+            brandName={block.content?.brandName}
+            brandLogoUrl={block.content?.brandLogoUrl}
+            positionMode={block.content?.positionMode || 'sticky'}
+            navLinks={block.content?.navLinks}
+            ctaText={block.content?.ctaText}
+            styles={block.styles}
+          />
+        );
       case 'HERO':
         return (
           <HeroBlock
@@ -180,6 +193,7 @@ export function ProductionRenderer({
             subheadline={block.content?.subheadline || block.content?.subtitle || ''}
             badgeText={block.content?.badgeText}
             ctaText={block.content?.ctaText || 'Direct Order'}
+            ctaHref={block.content?.ctaHref}
             styles={block.styles}
             layout={block.layout}
             viewport={viewport}
@@ -197,6 +211,8 @@ export function ProductionRenderer({
             styles={block.styles}
             layout={block.layout}
             viewport={viewport}
+            ctaText={block.content?.ctaText}
+            ctaHref={block.content?.ctaHref}
             features={block.content?.features || [
               'Integrated 1-Page Express Checkout with Xendit VA & QRIS',
               'Server-Side Meta Conversions API (CAPI) with 100% Event Deduplication',
@@ -211,17 +227,50 @@ export function ProductionRenderer({
         return <FaqBlock key={block.id} styles={block.styles} />;
       case 'FOOTER':
         return <FooterBlock key={block.id} styles={block.styles} />;
+      case 'PRODUCT_CATALOG':
+        return (
+          <ProductCatalogBlock
+            key={block.id}
+            title={block.content?.title}
+            subtitle={block.content?.subtitle}
+            checkoutPageUrl={block.content?.checkoutPageUrl || '/p/checkout-page'}
+            styles={block.styles}
+            showFilters={block.content?.showFilters !== false}
+            showSearch={block.content?.showSearch !== false}
+          />
+        );
       case 'CHECKOUT_FORM':
         return (
-          <div key={block.id} className="py-8 px-4 max-w-xl mx-auto w-full">
+          <div key={block.id} className="py-4 px-4 max-w-xl mx-auto w-full">
             <CheckoutFormBlock
               productId={block.content?.productId}
               productTitle={block.content?.productTitle || block.content?.formTitle}
               amount={block.content?.amount || block.content?.price}
               productType={block.content?.productType}
+              paymentPageUrl={block.content?.paymentPageUrl || '/p/payment-instruction'}
               styles={block.styles}
             />
           </div>
+        );
+      case 'PAYMENT_INSTRUCTION':
+        return (
+          <PaymentInstructionBlock
+            key={block.id}
+            successPageUrl={block.content?.successPageUrl || '/p/thank-you-page'}
+            customTitle={block.content?.title}
+            customDescription={block.content?.description}
+            styles={block.styles}
+          />
+        );
+      case 'SUCCESS_PAGE':
+        return (
+          <SuccessPageBlock
+            key={block.id}
+            storePageUrl={block.content?.storePageUrl || '/p/sales-page'}
+            customHeading={block.content?.title}
+            customMessage={block.content?.description}
+            styles={block.styles}
+          />
         );
       case 'TIMER':
         return (

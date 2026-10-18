@@ -31,33 +31,55 @@ export function TimerBlock({ urgencyText = 'Current Batch Closes In', styles }: 
     jakarta: 'font-sans',
   }[styles?.fontFamily || 'sans'];
 
+  const isDarkBg =
+    !styles?.backgroundColor ||
+    styles?.backgroundColor?.includes('#0') ||
+    styles?.backgroundColor?.includes('#1') ||
+    styles?.backgroundColor?.includes('black') ||
+    styles?.backgroundColor?.includes('neutral-9');
+
+  const textColor = styles?.textColor || (isDarkBg ? '#ffffff' : '#0f172a');
+  const pillBg = isDarkBg ? 'rgba(0, 0, 0, 0.4)' : '#ffffff';
+  const pillBorder = isDarkBg ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
+
   return (
     <div
-      className={`rounded-xl border border-neutral-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs ${fontClass}`}
+      className={`rounded-2xl border px-4 py-3 flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-xs ${fontClass}`}
       style={{
         backgroundColor: styles?.backgroundColor || 'rgba(10, 11, 15, 0.85)',
-        color: styles?.textColor || '#ffffff',
+        color: textColor,
+        borderColor: isDarkBg ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
       }}
     >
-      <div className="flex items-center gap-2 opacity-80">
-        <Clock className="w-3.5 h-3.5" style={{ color: styles?.accentColor || '#10b981' }} />
-        <span className="font-medium tracking-wide uppercase text-[10px]">
+      <div className="flex items-center gap-2 opacity-90">
+        <Clock className="w-3.5 h-3.5" style={{ color: styles?.accentColor || '#2563eb' }} />
+        <span className="font-semibold tracking-wide uppercase text-[10px]">
           {urgencyText}
         </span>
       </div>
 
-      <div className="flex items-center gap-1.5 font-mono text-xs font-semibold">
-        <span className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 tabular-nums">
+      <div className="flex items-center gap-1.5 font-mono text-xs font-bold">
+        <span
+          className="px-2 py-0.5 rounded-lg border tabular-nums shadow-2xs"
+          style={{ backgroundColor: pillBg, borderColor: pillBorder, color: textColor }}
+        >
           {String(timeLeft.hours).padStart(2, '0')}h
         </span>
-        <span className="opacity-40">:</span>
-        <span className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 tabular-nums">
+        <span className="opacity-50">:</span>
+        <span
+          className="px-2 py-0.5 rounded-lg border tabular-nums shadow-2xs"
+          style={{ backgroundColor: pillBg, borderColor: pillBorder, color: textColor }}
+        >
           {String(timeLeft.minutes).padStart(2, '0')}m
         </span>
-        <span className="opacity-40">:</span>
+        <span className="opacity-50">:</span>
         <span
-          className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 tabular-nums"
-          style={{ color: styles?.accentColor || '#10b981' }}
+          className="px-2 py-0.5 rounded-lg border tabular-nums shadow-2xs font-extrabold"
+          style={{
+            backgroundColor: pillBg,
+            borderColor: pillBorder,
+            color: styles?.accentColor || (isDarkBg ? '#38bdf8' : '#2563eb'),
+          }}
         >
           {String(timeLeft.seconds).padStart(2, '0')}s
         </span>

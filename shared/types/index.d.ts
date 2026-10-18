@@ -62,7 +62,7 @@ export interface ShadcnComponentInstance {
         styles?: Partial<ElementStyles>;
     }>;
 }
-export type BlockType = 'CONTAINER' | 'NAVBAR' | 'HERO' | 'PRODUCT_SPOTLIGHT' | 'IMAGE' | 'CHECKOUT_FORM' | 'REVIEWS' | 'TIMER' | 'FEATURE_GRID' | 'FAQ' | 'FOOTER';
+export type BlockType = 'CONTAINER' | 'NAVBAR' | 'HERO' | 'PRODUCT_SPOTLIGHT' | 'PRODUCT_CATALOG' | 'IMAGE' | 'CHECKOUT_FORM' | 'PAYMENT_INSTRUCTION' | 'SUCCESS_PAGE' | 'REVIEWS' | 'TIMER' | 'FEATURE_GRID' | 'FAQ' | 'FOOTER';
 export interface BlockStyles {
     backgroundColor?: string;
     backgroundImage?: string;

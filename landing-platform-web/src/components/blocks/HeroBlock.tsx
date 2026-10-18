@@ -9,6 +9,7 @@ export interface HeroBlockProps {
   subheadline: string;
   badgeText?: string;
   ctaText: string;
+  ctaHref?: string;
   onCtaClick?: () => void;
   styles?: BlockStyles;
   layout?: ContainerLayout;
@@ -20,6 +21,7 @@ export function HeroBlock({
   subheadline = 'Single-page conversion architecture engineered for zero drop-off. Seamless Xendit automated settlements and dual-layer Meta CAPI tracking.',
   badgeText = '2026 Merchant Infrastructure',
   ctaText = 'Proceed to Direct Order',
+  ctaHref,
   onCtaClick,
   styles,
   layout,
@@ -197,19 +199,36 @@ export function HeroBlock({
         </p>
 
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button
-            size="lg"
-            variant="default"
-            onClick={onCtaClick}
-            className="w-full sm:w-auto h-11 px-7 font-semibold"
-            style={{
-              backgroundColor: styles?.accentColor,
-              color: styles?.accentColor ? '#ffffff' : undefined,
-            }}
-          >
-            {ctaText}
-            <ArrowRight className="w-4 h-4 ml-1.5 opacity-60" />
-          </Button>
+          {ctaHref ? (
+            <a href={ctaHref} className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="default"
+                className="w-full sm:w-auto h-11 px-7 font-semibold"
+                style={{
+                  backgroundColor: styles?.accentColor,
+                  color: styles?.accentColor ? '#ffffff' : undefined,
+                }}
+              >
+                {ctaText}
+                <ArrowRight className="w-4 h-4 ml-1.5 opacity-60" />
+              </Button>
+            </a>
+          ) : (
+            <Button
+              size="lg"
+              variant="default"
+              onClick={onCtaClick}
+              className="w-full sm:w-auto h-11 px-7 font-semibold"
+              style={{
+                backgroundColor: styles?.accentColor,
+                color: styles?.accentColor ? '#ffffff' : undefined,
+              }}
+            >
+              {ctaText}
+              <ArrowRight className="w-4 h-4 ml-1.5 opacity-60" />
+            </Button>
+          )}
         </div>
 
         <div className="pt-6 border-t border-neutral-900/80 flex flex-wrap items-center justify-center gap-6 text-xs font-normal opacity-70">

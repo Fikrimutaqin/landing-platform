@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { ECOMMERCE_FUNNEL_STEPS, FunnelStepInfo } from '@/components/templates/ecommerce-funnel-templates';
 import { LocalPersistence } from '@/lib/local-persistence';
+import { PagesApiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -19,14 +20,14 @@ export default function TemplatesPage() {
   const [activeStep, setActiveStep] = useState<number>(1);
   const [installedNotice, setInstalledNotice] = useState<string | null>(null);
 
-  const handleUseTemplate = (step: FunnelStepInfo) => {
+  const handleUseTemplate = async (step: FunnelStepInfo) => {
     const pageId = `page_${step.slug.replace('-', '_')}`;
-    LocalPersistence.saveDraft(pageId, {
+    const pageDoc = {
       id: pageId,
       projectId: 'proj_default',
-      title: step.name,
+      title: step.name.replace(/^\d+\.\s*/, ''),
       slug: step.slug,
-      status: 'DRAFT',
+      status: 'PUBLISHED' as const,
       blocks: step.blocks,
       seoMetadata: {
         metaTitle: `${step.title} | Storefront`,
@@ -35,23 +36,33 @@ export default function TemplatesPage() {
         tiktokPixelId: 'C1234567890ABCDEF',
         googleAnalyticsId: 'G-XXXXXXXXXX',
       },
-    });
+    };
 
-    setInstalledNotice(`Template "${step.name}" berhasil dipasang. Mengalihkan ke Web Builder...`);
+    LocalPersistence.saveDraft(pageId, pageDoc);
+    try {
+      await PagesApiClient.saveDraft(pageId, pageDoc);
+      await PagesApiClient.publishPage(pageId, `Dipasang dari Template ${step.name}`);
+    } catch {
+      // Local draft preserved
+    }
+
+    setInstalledNotice(`Template "${step.name}" berhasil dipasang dan dipublikasikan. Mengalihkan ke Web Builder...`);
     setTimeout(() => {
       router.push(`/builder?pageId=${pageId}`);
     }, 600);
   };
 
-  const handleInstallEntireFunnel = () => {
-    ECOMMERCE_FUNNEL_STEPS.forEach((step) => {
+  const handleInstallEntireFunnel = async () => {
+    setInstalledNotice('Menyiapkan dan menerbitkan 4 halaman e-commerce terhubung...');
+
+    for (const step of ECOMMERCE_FUNNEL_STEPS) {
       const pageId = `page_${step.slug.replace('-', '_')}`;
-      LocalPersistence.saveDraft(pageId, {
+      const pageDoc = {
         id: pageId,
         projectId: 'proj_default',
-        title: step.name,
+        title: step.name.replace(/^\d+\.\s*/, ''),
         slug: step.slug,
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
         blocks: step.blocks,
         seoMetadata: {
           metaTitle: `${step.title} | Storefront`,
@@ -60,10 +71,18 @@ export default function TemplatesPage() {
           tiktokPixelId: 'C1234567890ABCDEF',
           googleAnalyticsId: 'G-XXXXXXXXXX',
         },
-      });
-    });
+      };
 
-    setInstalledNotice('Seluruh Funnel 4-Step berhasil disiapkan. Membuka Web Builder...');
+      LocalPersistence.saveDraft(pageId, pageDoc);
+      try {
+        await PagesApiClient.saveDraft(pageId, pageDoc);
+        await PagesApiClient.publishPage(pageId, `Dipasang dari Funnel Multi-Step: ${step.name}`);
+      } catch {
+        // Fallback to local
+      }
+    }
+
+    setInstalledNotice('Seluruh Funnel 4-Step E-Commerce berhasil disiapkan & dipublikasikan. Membuka Web Builder...');
     setTimeout(() => {
       router.push('/builder?pageId=page_sales_page');
     }, 700);

@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
+import { Button } from '../ui/button';
 import { BlockStyles, ContainerLayout } from '../../../../shared/types';
 
 export interface ProductSpotlightProps {
@@ -10,6 +11,8 @@ export interface ProductSpotlightProps {
   compareAtPrice?: number;
   inventoryBadgeText?: string;
   features: string[];
+  ctaText?: string;
+  ctaHref?: string;
   styles?: BlockStyles;
   layout?: ContainerLayout;
   viewport?: 'desktop' | 'tablet' | 'mobile';
@@ -27,6 +30,8 @@ export function ProductSpotlightBlock({
     'Direct Payouts: Zero Platform Transaction Fees (Funds Go Direct to Merchant)',
     '1-Click Export: Standalone Zero-Dependency HTML/CSS/JS Package',
   ],
+  ctaText = 'Pesan Sekarang',
+  ctaHref = '/p/checkout-page',
   styles,
   layout,
   viewport,
@@ -255,6 +260,15 @@ export function ProductSpotlightBlock({
               <span className="opacity-70">Ad Tracking</span>
               <span className="font-medium">Dual-Layer CAPI</span>
             </div>
+          </div>
+
+          <div className="pt-2">
+            <a href={ctaHref || '/p/checkout-page'} className="block w-full">
+              <Button className="w-full h-11 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-lg flex items-center justify-center gap-2">
+                <span>{ctaText || 'Pesan Sekarang'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </a>
           </div>
         </div>
       </div>

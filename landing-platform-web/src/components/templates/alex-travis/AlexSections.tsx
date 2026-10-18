@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Check, Camera, Link as LinkIcon, ShoppingCart } from 'lucide-react';
+import { ArrowRight, Check, Camera, Link as LinkIcon, ShoppingCart, Menu, X } from 'lucide-react';
 import { BlockItem } from '../../builder/ElementorSidebar';
 import { DynamicIcon } from '../../builder/IconPicker';
 import { ContainerLayout, BlockStyles } from '../../../../../shared/types';
@@ -446,6 +446,7 @@ function EditableImage({
 export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSelect, isSelected, viewport }: AlexSectionProps) {
   const content = block.content || {};
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const layoutConfig = resolveSectionLayout(block.layout, viewport, {
     display: 'flex',
     flexDirection: 'row',
@@ -599,7 +600,7 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
               ...(navBtnBg ? { backgroundColor: navBtnBg, backgroundImage: 'none' } : {}),
               ...(navBtnColor ? { color: navBtnColor } : {}),
             }}
-            className={`px-5 py-2.5 rounded-lg font-medium text-xs transition-all shadow-sm ${navBtnBg ? 'hover:opacity-90' : 'bg-[#161616] text-white hover:bg-[#111]'
+            className={`hidden sm:inline-flex px-5 py-2.5 rounded-lg font-medium text-xs transition-all shadow-sm ${navBtnBg ? 'hover:opacity-90' : 'bg-[#161616] text-white hover:bg-[#111]'
               }`}
           >
             <InlineText
@@ -608,8 +609,64 @@ export function AlexNavbarSection({ block, isPreviewMode, onUpdateContent, onSel
               disabled={isPreviewMode}
             />
           </button>
+
+          {/* Mobile Hamburger Toggle */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMobileMenuOpen(!mobileMenuOpen);
+            }}
+            aria-label="Toggle navigation menu"
+            className="md:hidden p-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+          >
+            {mobileMenuOpen ? <X className="w-4 h-4 text-red-500" /> : <Menu className="w-4 h-4" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Dropdown Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-[#ececec] dark:border-neutral-800 px-6 py-4 space-y-3 bg-white/95 dark:bg-[#0c0d12]/95 backdrop-blur-md shadow-xl animate-in slide-in-from-top-2">
+          <div className="flex flex-col space-y-1.5 text-xs font-semibold text-[#333] dark:text-neutral-200">
+            {navLinks.map((link: any, i: number) => (
+              <a
+                key={i}
+                href={link.href || '#'}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-between"
+              >
+                <span>{link.label}</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-40" />
+              </a>
+            ))}
+            {content.showPagesDropdown !== false &&
+              pagesLinks.map((pLink: any, pi: number) => (
+                <a
+                  key={pi}
+                  href={pLink.href || '#'}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 dark:text-neutral-400 transition-colors flex items-center justify-between"
+                >
+                  <span>{pLink.label}</span>
+                  <ArrowRight className="w-3.5 h-3.5 opacity-30" />
+                </a>
+              ))}
+          </div>
+
+          <button
+            type="button"
+            style={{
+              ...(navBtnBg ? { backgroundColor: navBtnBg, backgroundImage: 'none' } : {}),
+              ...(navBtnColor ? { color: navBtnColor } : {}),
+            }}
+            className={`w-full py-2.5 rounded-lg font-bold text-xs shadow-md ${navBtnBg ? 'hover:opacity-90 text-white' : 'bg-[#161616] text-white'
+              }`}
+          >
+            <span>{content.ctaText || 'Hire Me!'}</span>
+          </button>
+        </div>
+      )}
     </header>
   );
 }

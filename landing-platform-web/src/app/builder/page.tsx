@@ -23,10 +23,14 @@ import { ProductSpotlightBlock } from '@/components/blocks/ProductSpotlightBlock
 import { ImageBlock } from '@/components/blocks/ImageBlock';
 import { ContainerBlock } from '@/components/blocks/ContainerBlock';
 import { CheckoutFormBlock } from '@/components/blocks/CheckoutFormBlock';
+import { ProductCatalogBlock } from '@/components/blocks/ProductCatalogBlock';
+import { PaymentInstructionBlock } from '@/components/blocks/PaymentInstructionBlock';
+import { SuccessPageBlock } from '@/components/blocks/SuccessPageBlock';
 import { ReviewsBlock } from '@/components/blocks/ReviewsBlock';
 import { TimerBlock } from '@/components/blocks/TimerBlock';
 import { FaqBlock } from '@/components/blocks/FaqBlock';
 import { FooterBlock } from '@/components/blocks/FooterBlock';
+import { PageLinkPicker } from '@/components/builder/PageLinkPicker';
 
 import { SortableBlockWrapper } from '@/components/builder/SortableBlockWrapper';
 import { ElementorSidebar, BlockItem } from '@/components/builder/ElementorSidebar';
@@ -984,6 +988,53 @@ export default function PlatformDashboard() {
           googleAnalyticsId: prev.googleAnalyticsId || 'G-XXXXXXXXXX',
         }));
       });
+      setIsSectionModalOpen(false);
+      return;
+    }
+    if (templateKey === 'product_catalog_block') {
+      const newBlock: BlockItem = {
+        id: `blk_cat_${Date.now()}`,
+        type: 'PRODUCT_CATALOG',
+        content: {
+          title: 'Katalog Produk Pilihan',
+          subtitle: 'Pilih produk favorit Anda, beli langsung dengan checkout cepat atau masukkan ke keranjang belanja.',
+          checkoutPageUrl: '/p/checkout-page',
+          showFilters: true,
+          showSearch: true,
+        },
+        styles: { backgroundColor: '#ffffff', padding: 'xl' },
+      };
+      setBlocks((prev) => [...prev, newBlock]);
+      setIsSectionModalOpen(false);
+      return;
+    }
+    if (templateKey === 'payment_instruction_block') {
+      const newBlock: BlockItem = {
+        id: `blk_pay_${Date.now()}`,
+        type: 'PAYMENT_INSTRUCTION',
+        content: {
+          title: 'Instruksi Pembayaran Tagihan',
+          description: 'Lakukan pembayaran sesuai nominal tepat di bawah ini.',
+          successPageUrl: '/p/thank-you-page',
+        },
+        styles: { backgroundColor: '#ffffff', padding: 'xl' },
+      };
+      setBlocks((prev) => [...prev, newBlock]);
+      setIsSectionModalOpen(false);
+      return;
+    }
+    if (templateKey === 'success_page_block') {
+      const newBlock: BlockItem = {
+        id: `blk_succ_${Date.now()}`,
+        type: 'SUCCESS_PAGE',
+        content: {
+          title: 'Pembayaran Sukses & Terverifikasi!',
+          description: 'Terima kasih atas pesanan Anda. Invoice resmi telah diterbitkan.',
+          storePageUrl: '/p/sales-page',
+        },
+        styles: { backgroundColor: '#f0fdf4', padding: 'xl' },
+      };
+      setBlocks((prev) => [...prev, newBlock]);
       setIsSectionModalOpen(false);
       return;
     }
@@ -2092,6 +2143,7 @@ export default function PlatformDashboard() {
             subheadline={block.content.subheadline}
             badgeText={block.content.badgeText}
             ctaText={block.content.ctaText}
+            ctaHref={block.content.ctaHref}
             styles={block.styles}
             layout={block.layout}
             viewport={viewport}
@@ -2129,12 +2181,25 @@ export default function PlatformDashboard() {
             styles={block.styles}
             layout={block.layout}
             viewport={viewport}
+            ctaText={block.content.ctaText}
+            ctaHref={block.content.ctaHref}
             features={[
               'Integrated 1-Page Express Checkout with Xendit VA & QRIS',
               'Server-Side Meta Conversions API (CAPI) with 100% Event Deduplication',
               'Direct Payouts: Zero Platform Transaction Fees (Funds Go Direct to Merchant)',
               '1-Click Export: Standalone Zero-Dependency HTML/CSS/JS Package',
             ]}
+          />
+        );
+      case 'PRODUCT_CATALOG':
+        return (
+          <ProductCatalogBlock
+            title={block.content?.title}
+            subtitle={block.content?.subtitle}
+            checkoutPageUrl={block.content?.checkoutPageUrl || '/p/checkout-page'}
+            styles={block.styles}
+            showFilters={block.content?.showFilters !== false}
+            showSearch={block.content?.showSearch !== false}
           />
         );
       case 'CHECKOUT_FORM':
@@ -2145,10 +2210,29 @@ export default function PlatformDashboard() {
               productTitle={block.content?.productTitle || block.content?.formTitle}
               amount={block.content?.amount || block.content?.price}
               productType={block.content?.productType}
+              paymentPageUrl={block.content?.paymentPageUrl || '/p/payment-instruction'}
               styles={block.styles}
               pageId={persistence.currentPageId}
             />
           </div>
+        );
+      case 'PAYMENT_INSTRUCTION':
+        return (
+          <PaymentInstructionBlock
+            successPageUrl={block.content?.successPageUrl || '/p/thank-you-page'}
+            customTitle={block.content?.title}
+            customDescription={block.content?.description}
+            styles={block.styles}
+          />
+        );
+      case 'SUCCESS_PAGE':
+        return (
+          <SuccessPageBlock
+            storePageUrl={block.content?.storePageUrl || '/p/sales-page'}
+            customHeading={block.content?.title}
+            customMessage={block.content?.description}
+            styles={block.styles}
+          />
         );
       case 'REVIEWS':
         return <ReviewsBlock styles={block.styles} />;
@@ -2927,14 +3011,11 @@ export default function PlatformDashboard() {
                       )}
 
                       {'href' in (selectedComponent.props || {}) && (
-                        <div>
-                          <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Link URL (href)</label>
-                          <Input
-                            value={selectedComponent.props?.href ?? ''}
-                            onChange={(e) => updateComponentProp(selectedComponent.id, 'href', e.target.value)}
-                            placeholder="https://..."
-                          />
-                        </div>
+                        <PageLinkPicker
+                          label="Tautkan ke Halaman Toko (Link URL)"
+                          value={selectedComponent.props?.href ?? ''}
+                          onChange={(val) => updateComponentProp(selectedComponent.id, 'href', val)}
+                        />
                       )}
 
                       {('icon' in (selectedComponent.props || {}) || ['Item', 'Button', 'Badge', 'Alert', 'Message'].includes(selectedComponent.type)) && (
@@ -4986,6 +5067,11 @@ export default function PlatformDashboard() {
                               onChange={(e) => updateActiveContent('ctaText', e.target.value)}
                             />
                           </div>
+                          <PageLinkPicker
+                            label="Target Halaman Tombol CTA"
+                            value={activeBlock.content.ctaHref || ''}
+                            onChange={(val) => updateActiveContent('ctaHref', val)}
+                          />
                         </>
                       )}
 
@@ -5028,6 +5114,113 @@ export default function PlatformDashboard() {
                               onChange={(e) => updateActiveContent('productPrice', Number(e.target.value))}
                             />
                           </div>
+                          <PageLinkPicker
+                            label="Target Halaman Tombol Order / Beli"
+                            value={activeBlock.content.ctaHref || '/p/checkout-page'}
+                            onChange={(val) => updateActiveContent('ctaHref', val)}
+                          />
+                        </>
+                      )}
+
+                      {/* PRODUCT CATALOG controls */}
+                      {activeBlock.type === 'PRODUCT_CATALOG' && (
+                        <>
+                          <div>
+                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Judul Katalog</label>
+                            <Input
+                              value={activeBlock.content.title || ''}
+                              onChange={(e) => updateActiveContent('title', e.target.value)}
+                              placeholder="Katalog Produk Pilihan"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Subjudul / Deskripsi</label>
+                            <textarea
+                              rows={2}
+                              value={activeBlock.content.subtitle || ''}
+                              onChange={(e) => updateActiveContent('subtitle', e.target.value)}
+                              className="w-full rounded-lg border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/80 p-2.5 text-xs text-slate-900 dark:text-neutral-100"
+                              placeholder="Pilih produk favorit Anda..."
+                            />
+                          </div>
+                          <PageLinkPicker
+                            label="Halaman Checkout Tujuan (Beli Langsung & Keranjang)"
+                            value={activeBlock.content.checkoutPageUrl || '/p/checkout-page'}
+                            onChange={(val) => updateActiveContent('checkoutPageUrl', val)}
+                          />
+                        </>
+                      )}
+
+                      {/* CHECKOUT FORM controls */}
+                      {activeBlock.type === 'CHECKOUT_FORM' && (
+                        <>
+                          <div>
+                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Judul Form</label>
+                            <Input
+                              value={activeBlock.content.formTitle || ''}
+                              onChange={(e) => updateActiveContent('formTitle', e.target.value)}
+                              placeholder="Formulir Pemesanan Express"
+                            />
+                          </div>
+                          <PageLinkPicker
+                            label="Halaman Pembayaran Tujuan (Redirect Setelah Submit)"
+                            value={activeBlock.content.paymentPageUrl || '/p/payment-instruction'}
+                            onChange={(val) => updateActiveContent('paymentPageUrl', val)}
+                          />
+                        </>
+                      )}
+
+                      {/* PAYMENT INSTRUCTION controls */}
+                      {activeBlock.type === 'PAYMENT_INSTRUCTION' && (
+                        <>
+                          <div>
+                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Judul Instruksi</label>
+                            <Input
+                              value={activeBlock.content.title || ''}
+                              onChange={(e) => updateActiveContent('title', e.target.value)}
+                              placeholder="Instruksi Pembayaran Tagihan"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Deskripsi Tambahan</label>
+                            <Input
+                              value={activeBlock.content.description || ''}
+                              onChange={(e) => updateActiveContent('description', e.target.value)}
+                              placeholder="Lakukan pembayaran sesuai nominal tepat..."
+                            />
+                          </div>
+                          <PageLinkPicker
+                            label="Halaman Sukses Tujuan (Redirect Setelah Lunas)"
+                            value={activeBlock.content.successPageUrl || '/p/thank-you-page'}
+                            onChange={(val) => updateActiveContent('successPageUrl', val)}
+                          />
+                        </>
+                      )}
+
+                      {/* SUCCESS PAGE controls */}
+                      {activeBlock.type === 'SUCCESS_PAGE' && (
+                        <>
+                          <div>
+                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Judul Konfirmasi</label>
+                            <Input
+                              value={activeBlock.content.title || ''}
+                              onChange={(e) => updateActiveContent('title', e.target.value)}
+                              placeholder="Pembayaran Sukses & Terverifikasi!"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 dark:text-neutral-300 font-medium mb-1">Pesan Sukses</label>
+                            <Input
+                              value={activeBlock.content.description || ''}
+                              onChange={(e) => updateActiveContent('description', e.target.value)}
+                              placeholder="Terima kasih atas pesanan Anda..."
+                            />
+                          </div>
+                          <PageLinkPicker
+                            label="Halaman Kembali ke Toko (Tombol Belanja Lagi)"
+                            value={activeBlock.content.storePageUrl || '/p/sales-page'}
+                            onChange={(val) => updateActiveContent('storePageUrl', val)}
+                          />
                         </>
                       )}
                     </div>
