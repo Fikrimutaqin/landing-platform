@@ -13,7 +13,7 @@ import { Eye, EyeOff, Loader2, Layers } from 'lucide-react';
 
 export default function RootLoginPage() {
   const router = useRouter();
-  const { login, loginAsDemo, error, clearError, isLoading, isAuthenticated } = useAuth();
+  const { login, error, clearError, isLoading, isAuthenticated } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,18 +39,6 @@ export default function RootLoginPage() {
     }
 
     const ok = await login({ email, password, rememberMe });
-    if (ok) {
-      router.push('/dashboard');
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setEmail('merchant@orderonline.id');
-    setPassword('Password123!');
-    setLocalError(null);
-    clearError();
-
-    const ok = await loginAsDemo();
     if (ok) {
       router.push('/dashboard');
     }

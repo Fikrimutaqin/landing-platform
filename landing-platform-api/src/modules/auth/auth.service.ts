@@ -42,9 +42,7 @@ export class AuthService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly supabaseService: SupabaseService,
-  ) {
-    this.seedDefaultData();
-  }
+  ) {}
 
   private hashPassword(password: string): string {
     const salt = crypto.randomBytes(16).toString('hex');
@@ -57,32 +55,6 @@ export class AuthService {
     if (!hash || !salt) return false;
     const testHash = crypto.scryptSync(password, salt, 64).toString('hex');
     return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(testHash, 'hex'));
-  }
-
-  private seedDefaultData() {
-    const defaultOrgId = 'org_default_merchant';
-    const defaultOrg: Organization = {
-      id: defaultOrgId,
-      name: 'OrderOnline Pro Store',
-      slug: 'orderonline-pro',
-      planTier: 'BUSINESS',
-      createdAt: new Date().toISOString(),
-    };
-    this.organizations.set(defaultOrgId, defaultOrg);
-
-    const demoUserId = 'usr_demo_steven';
-    const demoUser: InternalUser = {
-      id: demoUserId,
-      email: 'merchant@orderonline.id',
-      name: 'Steven Mutaqin',
-      role: 'OWNER',
-      organizationId: defaultOrgId,
-      passwordHash: this.hashPassword('Password123!'),
-      avatarUrl:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      createdAt: new Date().toISOString(),
-    };
-    this.users.set(demoUser.email.toLowerCase(), demoUser);
   }
 
   private createSession(userId: string, rememberMe = true): string {

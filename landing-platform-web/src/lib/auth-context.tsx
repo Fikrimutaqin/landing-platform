@@ -12,7 +12,6 @@ interface AuthContextType {
   error: string | null;
   login: (credentials: LoginDto) => Promise<boolean>;
   register: (payload: RegisterDto) => Promise<boolean>;
-  loginAsDemo: () => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (payload: UserProfileUpdateDto) => Promise<boolean>;
   clearError: () => void;
@@ -27,24 +26,6 @@ const API_BASE_URL = getApiBaseUrl();
 const TOKEN_KEY = 'platform_auth_token';
 const USER_KEY = 'platform_auth_user';
 const ORG_KEY = 'platform_auth_org';
-
-const DEMO_USER: AuthUser = {
-  id: 'usr_demo_steven',
-  name: 'Steven Mutaqin',
-  email: 'merchant@orderonline.id',
-  role: 'OWNER',
-  organizationId: 'org_default_merchant',
-  organizationName: 'OrderOnline Pro Store',
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-};
-
-const DEMO_ORG: Organization = {
-  id: 'org_default_merchant',
-  name: 'OrderOnline Pro Store',
-  slug: 'orderonline-pro',
-  planTier: 'BUSINESS',
-  createdAt: new Date().toISOString(),
-};
 
 const formatErrorMessage = (data: any, fallback: string): string => {
   if (!data) return fallback;
@@ -101,7 +82,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
   // Rehydrate on page load
   useEffect(() => {
     const initializeAuth = async () => {
@@ -112,7 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (storedToken && storedUser) {
           try {
-            setUser(JSON.parse(storedUser));
+            const parsedUser: AuthUser = JSON.parse(storedUser);
+            setUser(parsedUser);
             if (storedOrg) setOrganization(JSON.parse(storedOrg));
             setToken(storedToken);
 
@@ -123,12 +104,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (res.ok) {
               const data: AuthResponse = await res.json();
               if (data.user) {
-                const resolvedOrg: Organization = data.organization || (storedOrg ? JSON.parse(storedOrg) : DEMO_ORG);
+                const resolvedOrg: Organization = data.organization || (storedOrg ? JSON.parse(storedOrg) : {
+                  id: data.user.organizationId || 'org_merchant',
+                  name: data.user.organizationName || 'Toko Merchant',
+                  slug: 'toko-merchant',
+                  planTier: 'FREE',
+                  createdAt: new Date().toISOString(),
+                });
                 saveAuthSession(storedToken, data.user, resolvedOrg);
               }
             }
           } catch {
-            // Keep stored cached user if server is unreachable
+            // Keep stored cached user if server is temporarily unreachable
           }
         }
       } catch {
@@ -154,12 +141,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || data.success === false) {
-        // Fallback for demo merchant credentials if backend is temporarily disconnected
-        if (credentials.email === 'merchant@orderonline.id' && credentials.password === 'Password123!') {
-          saveAuthSession('token_offline_demo_steven', DEMO_USER, DEMO_ORG);
-          setIsLoading(false);
-          return true;
-        }
         setError(formatErrorMessage(data, 'Email atau kata sandi tidak sesuai.'));
         setIsLoading(false);
         return false;
@@ -178,12 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       return true;
     } catch {
-      // Offline fallback
-      // if (credentials.email === 'merchant@orderonline.id' && credentials.password === 'Password123!') {
-      //   saveAuthSession('token_offline_demo_steven', DEMO_USER, DEMO_ORG);
-      //   setIsLoading(false);
-      //   return true;
-      // }
       setError('Gagal menghubungi server NestJS (http://localhost:4000). Pastikan backend sedang berjalan.');
       setIsLoading(false);
       return false;
@@ -227,14 +202,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loginAsDemo = async (): Promise<boolean> => {
-    return login({
-      email: 'merchant@orderonline.id',
-      password: 'Password123!',
-      rememberMe: true,
-    });
-  };
-
   const logout = async (): Promise<void> => {
     try {
       if (token) {
@@ -272,8 +239,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
-        const currentOrg = organization || DEMO_ORG;
-        saveAuthSession(token, data.user, data.organization || currentOrg);
+        const currentOrg: Organization = data.organization || organization || {
+          id: data.user.organizationId || 'org_merchant',
+          name: data.user.organizationName || 'Toko Merchant',
+          slug: 'toko-merchant',
+          planTier: 'FREE',
+          createdAt: new Date().toISOString(),
+        };
+        saveAuthSession(token, data.user, currentOrg);
       }
       setIsLoading(false);
       return true;
@@ -295,7 +268,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error,
         login,
         register,
-        loginAsDemo,
         logout,
         updateProfile,
         clearError,
