@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export function UserNav() {
-  const { user, organization, isAuthenticated, logout, loginAsDemo, isLoading } = useAuth();
+  const { user, organization, isAuthenticated, logout, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -43,14 +43,6 @@ export function UserNav() {
   if (!isAuthenticated || !user) {
     return (
       <div className="flex items-center gap-1.5">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs font-medium text-slate-700 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white"
-          onClick={() => loginAsDemo()}
-        >
-          <span className="hidden sm:inline">Demo Akses</span>
-        </Button>
         <Link href="/login">
           <Button variant="outline" size="sm" className="h-8 text-xs font-medium">
             <LogIn className="w-3.5 h-3.5 mr-1" />

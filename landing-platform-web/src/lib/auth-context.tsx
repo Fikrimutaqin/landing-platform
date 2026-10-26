@@ -18,7 +18,12 @@ interface AuthContextType {
   clearError: () => void;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const getApiBaseUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  return envUrl.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '');
+};
+
+const API_BASE_URL = getApiBaseUrl();
 const TOKEN_KEY = 'platform_auth_token';
 const USER_KEY = 'platform_auth_user';
 const ORG_KEY = 'platform_auth_org';
@@ -39,6 +44,20 @@ const DEMO_ORG: Organization = {
   slug: 'orderonline-pro',
   planTier: 'BUSINESS',
   createdAt: new Date().toISOString(),
+};
+
+const formatErrorMessage = (data: any, fallback: string): string => {
+  if (!data) return fallback;
+  if (Array.isArray(data.message)) {
+    return data.message.join(', ');
+  }
+  if (typeof data.message === 'string' && data.message.trim()) {
+    return data.message;
+  }
+  if (typeof data.error === 'string' && data.error.trim()) {
+    return data.error;
+  }
+  return fallback;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,14 +88,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     setOrganization(null);
-    try {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      localStorage.removeItem(ORG_KEY);
-    } catch {
-      // ignore storage errors
+    if (typeof window !== 'undefined') {
+      try {
+        const theme = localStorage.getItem('platform_theme');
+        localStorage.clear();
+        if (theme) {
+          localStorage.setItem('platform_theme', theme);
+        }
+      } catch {
+        // ignore storage errors
+      }
     }
   };
+
 
   // Rehydrate on page load
   useEffect(() => {
@@ -92,14 +116,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (storedOrg) setOrganization(JSON.parse(storedOrg));
             setToken(storedToken);
 
-            // Attempt to verify with backend
+            // Attempt to verify with NestJS backend
             const res = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
               headers: { Authorization: `Bearer ${storedToken}` },
             });
             if (res.ok) {
               const data: AuthResponse = await res.json();
-              if (data.user && data.organization) {
-                saveAuthSession(storedToken, data.user, data.organization);
+              if (data.user) {
+                const resolvedOrg: Organization = data.organization || (storedOrg ? JSON.parse(storedOrg) : DEMO_ORG);
+                saveAuthSession(storedToken, data.user, resolvedOrg);
               }
             }
           } catch {
@@ -126,33 +151,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(credentials),
       });
 
-      const data: AuthResponse = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      if (!res.ok || !data.success) {
+      if (!res.ok || data.success === false) {
         // Fallback for demo merchant credentials if backend is temporarily disconnected
         if (credentials.email === 'merchant@orderonline.id' && credentials.password === 'Password123!') {
           saveAuthSession('token_offline_demo_steven', DEMO_USER, DEMO_ORG);
           setIsLoading(false);
           return true;
         }
-        setError(data.message || 'Email atau kata sandi tidak sesuai.');
+        setError(formatErrorMessage(data, 'Email atau kata sandi tidak sesuai.'));
         setIsLoading(false);
         return false;
       }
 
-      if (data.token && data.user && data.organization) {
-        saveAuthSession(data.token, data.user, data.organization);
+      if (data.token && data.user) {
+        const resolvedOrg: Organization = data.organization || {
+          id: data.user.organizationId || 'org_default',
+          name: data.user.organizationName || 'Toko Online',
+          slug: 'toko-online',
+          planTier: 'FREE',
+          createdAt: new Date().toISOString(),
+        };
+        saveAuthSession(data.token, data.user, resolvedOrg);
       }
       setIsLoading(false);
       return true;
     } catch {
       // Offline fallback
-      if (credentials.email === 'merchant@orderonline.id' && credentials.password === 'Password123!') {
-        saveAuthSession('token_offline_demo_steven', DEMO_USER, DEMO_ORG);
-        setIsLoading(false);
-        return true;
-      }
-      setError('Gagal menghubungi server. Silakan coba lagi.');
+      // if (credentials.email === 'merchant@orderonline.id' && credentials.password === 'Password123!') {
+      //   saveAuthSession('token_offline_demo_steven', DEMO_USER, DEMO_ORG);
+      //   setIsLoading(false);
+      //   return true;
+      // }
+      setError('Gagal menghubungi server NestJS (http://localhost:4000). Pastikan backend sedang berjalan.');
       setIsLoading(false);
       return false;
     }
@@ -168,21 +200,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(payload),
       });
 
-      const data: AuthResponse = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      if (!res.ok || !data.success) {
-        setError(data.message || 'Registrasi gagal. Silakan coba dengan email lain.');
+      if (!res.ok || data.success === false) {
+        setError(formatErrorMessage(data, 'Registrasi gagal. Silakan coba dengan email lain.'));
         setIsLoading(false);
         return false;
       }
 
-      if (data.token && data.user && data.organization) {
-        saveAuthSession(data.token, data.user, data.organization);
+      if (data.token && data.user) {
+        const resolvedOrg: Organization = data.organization || {
+          id: data.user.organizationId || 'org_default',
+          name: payload.organizationName,
+          slug: 'org-store',
+          planTier: payload.planTier || 'FREE',
+          createdAt: new Date().toISOString(),
+        };
+        saveAuthSession(data.token, data.user, resolvedOrg);
       }
       setIsLoading(false);
       return true;
     } catch {
-      setError('Koneksi terputus ke server auth. Mohon periksa koneksi Anda.');
+      setError('Koneksi terputus ke server NestJS. Mohon periksa koneksi Anda.');
       setIsLoading(false);
       return false;
     }
@@ -225,15 +264,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(payload),
       });
 
-      const data: AuthResponse = await res.json();
-      if (!res.ok || !data.success) {
-        setError(data.message || 'Gagal memperbarui profil.');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) {
+        setError(formatErrorMessage(data, 'Gagal memperbarui profil.'));
         setIsLoading(false);
         return false;
       }
 
-      if (data.user && data.organization) {
-        saveAuthSession(token, data.user, data.organization);
+      if (data.user) {
+        const currentOrg = organization || DEMO_ORG;
+        saveAuthSession(token, data.user, data.organization || currentOrg);
       }
       setIsLoading(false);
       return true;

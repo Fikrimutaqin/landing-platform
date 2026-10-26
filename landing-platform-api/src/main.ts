@@ -8,8 +8,9 @@ async function bootstrap() {
 
   // Enable CORS for frontend builder & public storefronts
   app.enableCors({
-    origin: '*',
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Accept,Authorization,X-Requested-With',
     credentials: true,
   });
 
@@ -36,7 +37,5 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port);
-  console.log(`🚀 Landing Platform API running at: http://localhost:${port}`);
-  console.log(`📚 OpenAPI / Swagger documentation at: http://localhost:${port}/api/docs`);
 }
 await bootstrap();
