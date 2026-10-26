@@ -67,7 +67,7 @@ export function usePersistence({
 
   useEffect(() => {
     refreshPagesList();
-  }, []);
+  });
 
   // 2. Perform Save
   const performSave = useCallback(
